@@ -1,35 +1,26 @@
 {
-    "compilerOptions": {
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "noImplicitAny": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "strictNullChecks": false,
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "declaration": true,
-        "jsx": "react",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "target": "esnext",
-        "outDir": "lib",
-        "lib": [
-            "dom",
-            "esnext"
-        ]
-    },
-    "include": [
-        "src/imagemap-editor/src/components/canvas/index.tsx",
-        "src/imagemap-editor/src/components/canvas/global.d.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "lib"
-    ]
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    // "strict": true,
+    // "strictPropertyInitialization": false,
+    // "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
+    "lib": ["dom", "es2018"],
+    "module": "esNext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    //"rootDir": "./src",
+    "pretty": true,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "target": "es5",
+    "outDir": "./lib",
+    "declaration": true
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules", "**/__test__"]
 }

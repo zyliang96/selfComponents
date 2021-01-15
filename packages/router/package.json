@@ -1,18 +1,14 @@
 {
-  "name": "selfcomponents",
-  "version": "0.0.1",
-  "description": "self components library",
+  "name": "router",
+  "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-examples": "webpack --config ./config/webpack.examples.config.js serve --open",
-    "dev": "cd examples && node run.js"
+    "dev": "webpack --config ./webpack.config.dev.js"
   },
-  "keywords": [
-    "components"
-  ],
-  "author": "zyliang96",
+  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.12.10",
@@ -22,6 +18,7 @@
     "@babel/preset-react": "^7.12.10",
     "@babel/preset-typescript": "^7.12.7",
     "babel-loader": "^8.2.2",
+    "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^5.0.1",
     "ejs-loader": "^0.5.0",
     "file-loader": "^6.2.0",
@@ -41,6 +38,5 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0"
-  },
-  "typings": "lib/index.d.ts"
+  }
 }
