@@ -72,6 +72,7 @@ const devServer = new WebpackDevServer(
         "@": path.resolve("src"),
       },
     },
+    watch:true
   }),
   {
     publicPath: "/",
