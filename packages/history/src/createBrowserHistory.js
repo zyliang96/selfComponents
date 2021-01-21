@@ -18,7 +18,7 @@ import {
  * 创建history路由
  * @param {*} options
  */
-export default function createHashHistory(options = {}) {
+export default function createBrowserHistory(options = {}) {
   const { window = document.defaultView, isShowBeforeUnload = false } = options;
 
   const basename = options.basename
@@ -35,7 +35,7 @@ export default function createHashHistory(options = {}) {
 
   let action = actionType.pop;
   let location = createLocation({
-    path: window.location.hash.substr(1),
+    path: window.location.href,
     basename,
     state: globalHistory.state,
   });
@@ -43,9 +43,9 @@ export default function createHashHistory(options = {}) {
   /**
    * 设置监听,只有再go,back,forward三种情况下会触发
    */
-  window.addEventListener(HashChangeEventType, (event) => {
+  window.addEventListener(PopStateEventType, (event) => {
     let nextLocation = createLocation({
-      path: window.location.hash.substr(1),
+      path: window.location.href,
       basename,
       state: globalHistory.state,
     });
@@ -63,6 +63,7 @@ export default function createHashHistory(options = {}) {
    */
   function handlePop(nextLocation) {
     if (blockedPopTx) {
+      blockedPopTx = false;
     } else {
       const nextAction = actionType.pop;
       const sendData = {
@@ -73,7 +74,8 @@ export default function createHashHistory(options = {}) {
         let isOk = blockers.call(sendData);
         if (!isOk) {
           const lastIndex = location.state.index - nextLocation.state.index;
-          go(lastIndex)
+          blockedPopTx = true;
+          go(lastIndex);
         }
       } else {
         applyTo(sendData);
@@ -99,7 +101,7 @@ export default function createHashHistory(options = {}) {
    * 是否允许跳转
    */
   function allowTo(props) {
-	const { action, location } = props;
+    const { action, location } = props;
     return !blockers.length || blockers.call({ action, location });
   }
 
@@ -131,7 +133,7 @@ export default function createHashHistory(options = {}) {
     };
     if (allowTo(sendData)) {
       try {
-        const url = getBaseHref() + "#" + basename + createPath(newLocation);
+        const url = getBaseHref() + basename + createPath(newLocation);
         globalHistory.pushState(newState, "", url);
       } catch (e) {
         console.error(e);
@@ -155,7 +157,7 @@ export default function createHashHistory(options = {}) {
     };
     if (allowTo(sendData)) {
       try {
-        const url = getBaseHref() + "#" + basename + createPath(newLocation);
+        const url = getBaseHref() + basename + createPath(newLocation);
         globalHistory.pushState(newState, "", url);
       } catch (e) {
         console.error(e);
