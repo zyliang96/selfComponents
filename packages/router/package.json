@@ -6,37 +6,29 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-examples": "webpack --config ./config/webpack.examples.config.js serve --open",
-    "dev": "webpack --config ./webpack.config.dev.js"
+    "dev": "cd scripts && node run.js"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/plugin-transform-modules-commonjs": "^7.12.1",
-    "@babel/plugin-transform-runtime": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-react": "^7.12.10",
-    "@babel/preset-typescript": "^7.12.7",
-    "babel-loader": "^8.2.2",
-    "clean-webpack-plugin": "^3.0.0",
-    "css-loader": "^5.0.1",
-    "ejs-loader": "^0.5.0",
-    "file-loader": "^6.2.0",
-    "html-webpack-plugin": "^4.5.1",
-    "less": "^4.1.0",
-    "less-loader": "^7.2.1",
-    "raw-loader": "^4.0.2",
-    "sass-loader": "^10.1.1",
-    "style-loader": "^2.0.0",
-    "url-loader": "^4.1.1",
-    "webpack": "^5.11.1",
-    "webpack-cli": "^4.3.1",
-    "webpack-dev-server": "^3.11.1"
-  },
   "dependencies": {
-    "classnames": "^2.2.6",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "react-router-dom": "^5.2.0"
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "clean-webpack-plugin": "^3.0.0",
+    "crypto-browserify": "^3.12.0",
+    "html-webpack-plugin": "^4.5.1",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.1.1",
+    "terser-webpack-plugin": "^5.1.1",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "util": "^0.12.3",
+    "vm-browserify": "^1.1.2",
+    "webpack": "^5.16.0",
+    "webpack-dev-server": "^3.11.2"
   }
 }
