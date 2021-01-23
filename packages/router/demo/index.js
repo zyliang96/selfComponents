@@ -7,12 +7,15 @@ import PageOne from "./pages/pageOne";
 
 const history = createHashHistory();
 function App(props) {
-  return (
-    <Router history={history}>
-      <Route path="/home" component={Home} />
-      <Route path="/pageOne" component={PageOne} />
-    </Router>
-  );
+	return (
+		<Router history={history}>
+			<div>
+				<div>测试页面</div>
+			</div>
+			<Route path="/home" component={Home} />
+			<Route path="/pageOne" component={PageOne} />
+		</Router>
+	);
 }
 
 ReactDom.render(<App />, document.getElementById("root"));
