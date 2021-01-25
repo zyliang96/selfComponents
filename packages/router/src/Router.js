@@ -7,12 +7,11 @@ function computeRootMatch(pathname) {
 }
 function Router(props) {
 	const { children, history } = props;
-	const [location, setLocation] = useState({}); // location
+	const [location, setLocation] = useState(history.location); // location
 
 	useEffect(() => {
 		setLocation(history.location);
 		let unListen = history.listen(({ action, location }) => {
-			console.log(action, location);
 			setLocation(location);
 		});
 		return () => {
