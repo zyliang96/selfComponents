@@ -13,10 +13,8 @@ function Route(props) {
     <RouterContext.Consumer>
       {(context) => {
         const { history, location, match } = context;
-        console.log("context", context);
-        console.log("props", path, children);
-
         const nowLocation = props.location || location;
+        // nowMatch 是根据 path 生成的正则表达是匹配的
         const nowMatch = path ? matchPath(nowLocation.pathname, props) : match;
         const newProps = { ...context, nowLocation, nowMatch };
 

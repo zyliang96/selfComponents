@@ -1,3 +1,4 @@
+import { pathToRegexp } from "../utils/path-to-regexp";
 /**
  * 缓存判断过的数据
  */
@@ -14,9 +15,9 @@ export function compilePath(path, options = {}) {
   if (cache[path]) {
     return cache[path];
   }
-  let result = null;
-
-  
+  let keys = [];
+  const regexp = pathToRegexp(path, keys, options);
+  const result = { regexp, keys };
 
   if (cacheCount < cacheLimit) {
     cache[path] = result;
@@ -54,12 +55,34 @@ export function matchPath(locationPath, options = {}) {
   return paths.reduce((matched, path) => {
     if (!path && path !== "") return null;
     if (matched) return matched;
-  }, null);
-  const reg = /^\/((:?)\S+)/;
-  const locationPathMatch = locationPath.match(reg);
-  const targetPathMatch = targetPath.match(reg);
-  console.log(locationPathMatch);
-  console.log(targetPathMatch);
+    const options = {
+      end: exact,
+      strict,
+      sensitive,
+    };
+    // 生成path的正则表达式
+    const { regexp, keys } = compilePath(path, options);
 
-  return locationPathMatch[1] === targetPathMatch[1];
+    // 判断是否匹配路由哦
+    const match = regexp.exec(locationPath);
+
+    if (!match) return null;
+    // 第一个值是匹配到的url内容，后面的对应:test 这种动态路由的值
+    const [url, ...values] = match;
+    const isExact = locationPath === url;
+
+    // 不匹配的时候返回null
+    if (exact && !isExact) return null;
+    // TODO 这里需要考虑一个问题，如果存在两个都能匹配到的路由的时候，优先级是怎么样的
+    return {
+      path, // the path used to match
+      url: path === "/" && url === "" ? "/" : url, // the matched portion of the URL
+      isExact, // whether or not we matched exactly
+      params: keys.reduce((memo, key, index) => {
+        // 生成params对象
+        memo[key.name] = values[index];
+        return memo;
+      }, {}),
+    };
+  }, null);
 }

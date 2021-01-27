@@ -1,3 +1,7 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
 // 词法分析类型
 const tokensType = {
   name: "NAME", // 名称
@@ -382,7 +386,7 @@ function stringToRegexp(path, keys, options) {
 /**
  * 正则转正则
  */
-export function regexpToRegexp(path, keys) {
+function regexpToRegexp(path, keys) {
   // 正则的处理如果没有keys的，直接返回即可
   if (!keys) return path;
   // TODO 只明白了要将 没懂  \( 开头   (?:\?<(.*?)>) 非获取匹配?<任意值> 的数据    (.*?) 任意字符存在0个或1个，并获取      (?!\?) 为非?
@@ -408,7 +412,7 @@ export function regexpToRegexp(path, keys) {
 /**
  * 数组转正则
  */
-export function arrayToRegexp(paths, keys, options) {
+function arrayToRegexp(paths, keys, options) {
   // 循环调用paths，每个单独处理，然后生成一个| 的匹配形式的正则
   const parts = paths.map((path) => pathToRegexp(path, keys, options).source);
   return new RegExp(`(?:${parts.join("|")})`, flags(options));
@@ -466,7 +470,7 @@ const defaultOptions = {
  * @param {Array} keys
  * @param {Object<defaultOptions>} options
  */
-export function pathToRegexp(path, keys, options) {
+function pathToRegexp(path, keys, options) {
   // TODO 数组和正则的都不太了解使用场景
   if (path instanceof RegExp) return regexpToRegexp(path, keys);
   if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
@@ -476,7 +480,7 @@ export function pathToRegexp(path, keys, options) {
 /**
  * match function 的 options可选配置参数
  */
-const matchOptions = Object.assign({}, defaultOptions, {
+Object.assign({}, defaultOptions, {
   decode: (x) => x,
 });
 
@@ -486,7 +490,7 @@ const matchOptions = Object.assign({}, defaultOptions, {
  * @param {RegExp} reg
  * @param {Object<matchOptions>} options
  */
-export function match(path, options) {
+function match(path, options) {
   let keys = [];
   const reg = pathToRegexp(path, keys, options);
   return regexpToFunction(reg, keys, options);
@@ -498,7 +502,7 @@ export function match(path, options) {
  * @param {*} keys
  * @param {*} options
  */
-export function regexpToFunction(reg, keys, options) {
+function regexpToFunction(reg, keys, options) {
   const { decode = (x) => x } = options;
   // 根据pathname 判断是否符合条件，以及参数有哪些
   return function (pathname) {
@@ -536,7 +540,7 @@ export function regexpToFunction(reg, keys, options) {
  * 该方法主要是为了将一个规定的路由格式处理成一个function，然后根据传入的值，动态的生成路由地址
  * @param {String} str
  */
-export function compile(str, options) {
+function compile(str, options) {
   return tokensToFunction(parse(str, options), options);
 }
 
@@ -545,7 +549,7 @@ export function compile(str, options) {
  * @param {Array} tokens
  * @param {Object<defaultOptions>} options
  */
-export function tokensToFunction(tokens, options) {
+function tokensToFunction(tokens, options) {
   const reFlags = flags(options);
   const { encode = (x) => x, validate = true } = options;
   // 将所有tokens中的匹配范式都转化成Regexp对象，后续用于匹配指定的字符串是否符合逻辑要求
@@ -627,7 +631,7 @@ export function tokensToFunction(tokens, options) {
       const typeOfMessage = repeat ? "an array" : "a string";
       if(token.name){
         throw new TypeError(`Expected "${token.name}" to be ${typeOfMessage}`);
-      }else{
+      }else {
         throw new TypeError(`Expected {} insert has a value`);
       }
       
@@ -636,3 +640,12 @@ export function tokensToFunction(tokens, options) {
     return path;
   };
 }
+
+exports.arrayToRegexp = arrayToRegexp;
+exports.compile = compile;
+exports.match = match;
+exports.pathToRegexp = pathToRegexp;
+exports.regexpToFunction = regexpToFunction;
+exports.regexpToRegexp = regexpToRegexp;
+exports.tokensToFunction = tokensToFunction;
+//# sourceMappingURL=path-to-regexp.js.map

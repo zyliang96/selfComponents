@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import RouterContext from "./RouterContext";
 import HistoryContext from "./HistoryContext";
-import { Chunk } from "webpack";
 function computeRootMatch(pathname) {
   return { path: "/", url: "/", params: {}, isExact: pathname === "/" };
 }

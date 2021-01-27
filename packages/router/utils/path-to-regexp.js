@@ -1,3 +1,7 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
 // 词法分析类型
 const tokensType = {
   name: "NAME", // 名称
@@ -382,7 +386,7 @@ function stringToRegexp(path, keys, options) {
 /**
  * 正则转正则
  */
-export function regexpToRegexp(path, keys) {
+function regexpToRegexp(path, keys) {
   // 正则的处理如果没有keys的，直接返回即可
   if (!keys) return path;
   // TODO 只明白了要将 没懂  \( 开头   (?:\?<(.*?)>) 非获取匹配?<任意值> 的数据    (.*?) 任意字符存在0个或1个，并获取      (?!\?) 为非?
@@ -408,231 +412,24 @@ export function regexpToRegexp(path, keys) {
 /**
  * 数组转正则
  */
-export function arrayToRegexp(paths, keys, options) {
+function arrayToRegexp(paths, keys, options) {
   // 循环调用paths，每个单独处理，然后生成一个| 的匹配形式的正则
   const parts = paths.map((path) => pathToRegexp(path, keys, options).source);
   return new RegExp(`(?:${parts.join("|")})`, flags(options));
 }
 
 /**
- * 默认配置说明
- */
-const defaultOptions = {
-  /**
-   * When `true` the regexp will be case sensitive. (default: `false`)
-   * 为true的时候，默认区分大小写
-   */
-  sensitive: false,
-  /**
-   * When `true` the regexp won't allow an optional trailing delimiter to match. (default: `false`)
-   * 为true的时候，regexp将不允许可选的尾部分隔符匹配
-   */
-  strict: false,
-  /**
-   * When `true` the regexp will match to the end of the string. (default: `true`)
-   * 当'true'时，regexp将与字符串的结尾匹配
-   */
-  end: true,
-  /**
-   * When `true` the regexp will match from the beginning of the string. (default: `true`)
-   * 当'true'时，regexp将从字符串的开头匹配
-   */
-  start: true,
-  /**
-   * Sets the final character for non-ending optimistic matches. (default: `/`)
-   * 设置匹配的最后一个字符
-   */
-  delimiter: "/",
-  /**
-   * List of characters that can also be "end" characters.
-   * 设置结束的字符串
-   */
-  endsWith: "$",
-  /**
-   * List of characters to automatically consider prefixes when parsing.
-   * 前缀字段
-   */
-  prefixes: "./",
-  /**
-   * Encode path tokens for use in the `RegExp`.
-   * 编码RegExp的方法
-   */
-  encode: (value) => value,
-};
-
-/**
  *
  * @param {String|Array|RegExp} path
  * @param {Array} keys
- * @param {Object<defaultOptions>} options
+ * @param {Object} options
  */
-export function pathToRegexp(path, keys, options) {
+function pathToRegexp(path, keys, options) {
   // TODO 数组和正则的都不太了解使用场景
   if (path instanceof RegExp) return regexpToRegexp(path, keys);
   if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
   return stringToRegexp(path, keys, options);
 }
 
-/**
- * match function 的 options可选配置参数
- */
-const matchOptions = Object.assign({}, defaultOptions, {
-  decode: (x) => x,
-});
-
-/**
- * Create path match function from `path-to-regexp` spec.
- * 创建一个匹配的function
- * @param {RegExp} reg
- * @param {Object<matchOptions>} options
- */
-export function match(path, options) {
-  let keys = [];
-  const reg = pathToRegexp(path, keys, options);
-  return regexpToFunction(reg, keys, options);
-}
-
-/**
- * 将政策表达是转化成匹配方法
- * @param {} reg
- * @param {*} keys
- * @param {*} options
- */
-export function regexpToFunction(reg, keys, options) {
-  const { decode = (x) => x } = options;
-  // 根据pathname 判断是否符合条件，以及参数有哪些
-  return function (pathname) {
-    // 调用path-to-regexp的正则表达式处理
-    const matchInfo = reg.exec(pathname);
-    if (!matchInfo) {
-      return false;
-    }
-
-    const { 0: path, index } = matchInfo;
-    const params = Object.create(null);
-
-    for (let i = 1; i < matchInfo.length; i++) {
-      // 判断数据是否为undefined ，如果是undefined，则跳过当前这条数据的操作
-      if (matchInfo[i] === undefined) {
-        continue;
-      }
-      const key = keys[i - 1];
-      // 如果修饰符是 * 或者 + 的，需要匹配多个，这种情况下，需要过滤调前后缀，避免对实际数据造成影响，理论上split后的数据只有一个
-      if (key.modifier === "*" || key.modifier === "+") {
-        params[key.name] = m[i].split(key.prefix + key.suffix).map((value) => {
-          return decode(value, key);
-        });
-      } else {
-        params[key.name] = decode(m[i], key);
-      }
-    }
-    return { path, index, params };
-  };
-}
-
-/**
- * Compile a string to a template function for the path.
- * 将字符串编译为路径的模板函数
- * 该方法主要是为了将一个规定的路由格式处理成一个function，然后根据传入的值，动态的生成路由地址
- * @param {String} str
- */
-export function compile(str, options) {
-  return tokensToFunction(parse(str, options), options);
-}
-
-/**
- * 通过分词后的数组和提供的参数数据，动态生成页面路由
- * @param {Array} tokens
- * @param {Object<defaultOptions>} options
- */
-export function tokensToFunction(tokens, options) {
-  const reFlags = flags(options);
-  const { encode = (x) => x, validate = true } = options;
-  // 将所有tokens中的匹配范式都转化成Regexp对象，后续用于匹配指定的字符串是否符合逻辑要求
-  const matches = tokens.map((token) => {
-    if (typeof token === "object") {
-      return new RegExp(`^(?:${token.pattern})$`, reFlags);
-    }
-  });
-  return function (data) {
-    let path = "";
-    for (let i = 0, len = tokens.length; i < len; i++) {
-      const token = tokens[i];
-      // 如果是字符串，则为固定字符，这种情况直接拷贝即可
-      if (typeof token === "string") {
-        path += token;
-        continue;
-      }
-      // 设置的数值
-      const value = data ? data[token.name] : undefined;
-      // 是否存在
-      const optional = token.modifier === "?" || token.modifier === "*";
-      // 是否重复
-      const repeat = token.modifier === "*" || token.modifier === "+";
-
-      // 判断value是否是一个数组
-      if (Array.isArray(value)) {
-        // 数组如果不支持
-        if (!repeat) {
-          throw new TypeError(
-            `Expected "${token.name}" to not repeat, but got an array`
-          );
-        }
-
-        // 如果数组的长度为0，并且还必须存在，那就提示错误
-        if (value.length === 0) {
-          if (optional) continue;
-          throw new TypeError(`Expected "${token.name}" to not be empty`);
-        }
-
-        for (let j = 0; j < value.length; j++) {
-          const segment = encode(value[j], token);
-          // 如果需要校验，并且校验没通过，则提示错误
-          if (validate && !matches[i].test(segment)) {
-            throw new TypeError(
-              `Expected all "${token.name}" to match "${token.pattern}", but got "${segment}"`
-            );
-          }
-          // 否则直接前缀 + 具体的值 + 后缀
-          path += token.prefix + segment + token.suffix;
-        }
-
-        continue;
-      }
-
-      // 如果是 string 和 number 类型的
-      if (typeof value === "string" || typeof value === "number") {
-        // 编码
-        const segment = encode(String(value), token);
-        // 判断是否符合条件
-        if (validate && !matches[i].test(segment)) {
-          throw new TypeError(
-            `Expected "${token.name}" to match "${token.pattern}", but got "${segment}"`
-          );
-        }
-        // 否则直接前缀 + 具体的值 + 后缀
-        path += token.prefix + segment + token.suffix;
-        continue;
-      }
-
-      // 如果可以不存在,则继续运行
-      if (optional) continue;
-
-      // 走到这一步，，说明了必须有值才可以，所以 如果token的名称不存在的时候，
-      if (!token.name && (token.prefix || token.suffix)) {
-        path += token.prefix + token.suffix;
-        continue;
-      }
-      // 提示错误，根据数据是否需要重复判断需要的值类型
-      const typeOfMessage = repeat ? "an array" : "a string";
-      if(token.name){
-        throw new TypeError(`Expected "${token.name}" to be ${typeOfMessage}`);
-      }else{
-        throw new TypeError(`Expected {} insert has a value`);
-      }
-      
-    }
-
-    return path;
-  };
-}
+exports.pathToRegexp = pathToRegexp;
+//# sourceMappingURL=path-to-regexp.js.map

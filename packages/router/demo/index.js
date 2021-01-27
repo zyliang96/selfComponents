@@ -7,13 +7,22 @@ import PageOne from "./pages/pageOne";
 
 const history = createHashHistory();
 function App(props) {
+	const gotoHome = () => {
+		history.push('/home/pageOne')
+	}
+	const gotoPageOne = () => {
+		history.push('/home/pageOne')
+	}
+
 	return (
 		<Router history={history}>
 			<div>
 				<div>测试页面</div>
+				<div onClick={gotoHome}>home</div>
+				<div onClick={gotoPageOne}>pageOne</div>
 			</div>
-			<Route path="/home" component={Home} />
-			<Route path="/pageOne" component={PageOne} />
+			<Route path="/home/:test" component={Home} />
+			<Route path="/:test/pageOne" component={PageOne} />
 		</Router>
 	);
 }
