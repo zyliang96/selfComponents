@@ -1,7 +1,9 @@
+import { enumValueType } from "../config/index";
 /**
  * 创建事件队列
  */
-export function createEventList() {
+export function createEventList(options = {}) {
+  const { isNeedResult = false, removeCallback } = options;
   let list = [];
 
   return {
@@ -12,12 +14,21 @@ export function createEventList() {
       list.push(fn);
       return () => {
         list = list.filter((item) => item !== fn);
+        if (!list.length) {
+          removeCallback && removeCallback();
+        }
       };
     },
     call(arg) {
-      list.forEach((fn) => {
-        fn && fn(arg);
-      });
+      let result = true;
+      for (let i = 0, len = list.length; i < len; i++) {
+        const fn = list[i];
+        result = fn && fn(arg);
+        if (isNeedResult && !result) {
+          break;
+        }
+      }
+      return result;
     },
   };
 }
@@ -47,6 +58,25 @@ export function getUniqueKey(baseData = "") {
   return newKey.join("");
 }
 
+export function isObject(obj) {
+  return (
+    obj && typeof obj === "object" && toString.call(obj) === "[object Object]"
+  );
+}
+
+/**
+ * 获取数据类型
+ * 这里只考虑基本数据类型，symbol等不在考虑范畴内
+ */
+export function getValueType(val) {
+  let type = enumValueType.basic;
+  if (isObject(val)) {
+    type = enumValueType.object;
+  }
+  if (Array.isArray(val)) {
+    type = enumValueType.array;
+  }
+}
 /**
  * 比较两个值是否相等
  * @param {*} A
@@ -77,7 +107,6 @@ export function valueEqual(valueA, valueB) {
       }
     }
   }
-  i;
   // 数组先判断长度，然后再判断每一个值
   if (valueAType === enumValueType.array) {
     if (valueA.length === valueB.length) {

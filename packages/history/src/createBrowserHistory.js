@@ -29,33 +29,46 @@ export default function createBrowserHistory(options = {}) {
   const globalHistory = window.history;
 
   // 订阅者队列
-  const listeners = createEventList();
+  const listeners = createEventList({
+    removeCallback: removePopStateEventListenFunc,
+  });
   // 提示事件队列
-  const blockers = createEventList({ isNeedResult: true });
+  const blockers = createEventList({
+    isNeedResult: true,
+    removeCallback: removePopStateEventListenFunc,
+  });
 
   let action = actionType.pop;
   let location = createLocation({
-    path: window.location.href,
+    path: window.location,
     basename,
     state: globalHistory.state,
   });
 
   /**
-   * 设置监听,只有再go,back,forward三种情况下会触发
+   * PopStateEvent 监听方法
    */
-  window.addEventListener(PopStateEventType, (event) => {
+  function popStateEventListenFunc(event) {
     let nextLocation = createLocation({
-      path: window.location.href,
+      path: window.location,
       basename,
       state: globalHistory.state,
     });
-
     // Ignore extraneous hashchange events.
     // 这里感觉可以使用event中的数据，但是这样写可以避免不同环境hash中数据异常的问题
     if (createPath(nextLocation) !== createPath(location)) {
       handlePop(nextLocation);
     }
-  });
+  }
+
+  function removePopStateEventListenFunc() {
+    window.removeEventListener(PopStateEventType, popStateEventListenFunc);
+  }
+
+  /**
+   * 设置监听,只有再go,back,forward三种情况下会触发
+   */
+  window.addEventListener(PopStateEventType, popStateEventListenFunc);
 
   let blockedPopTx = null;
   /**
@@ -64,6 +77,7 @@ export default function createBrowserHistory(options = {}) {
   function handlePop(nextLocation) {
     if (blockedPopTx) {
       blockedPopTx = false;
+      console.log("blockedPopTx", blockedPopTx);
     } else {
       const nextAction = actionType.pop;
       const sendData = {
@@ -74,8 +88,12 @@ export default function createBrowserHistory(options = {}) {
         let isOk = blockers.call(sendData);
         if (!isOk) {
           const lastIndex = location.state.index - nextLocation.state.index;
-          blockedPopTx = true;
+          // blockedPopTx = true;
+          console.log("isNotOk", blockedPopTx, location, nextLocation);
           go(lastIndex);
+        } else {
+          console.log(location, nextLocation);
+          location = nextLocation;
         }
       } else {
         applyTo(sendData);
@@ -102,7 +120,8 @@ export default function createBrowserHistory(options = {}) {
    */
   function allowTo(props) {
     const { action, location } = props;
-    return !blockers.length || blockers.call({ action, location });
+    const result = !blockers.length || blockers.call({ action, location });
+    return result;
   }
 
   /**
@@ -148,7 +167,7 @@ export default function createBrowserHistory(options = {}) {
   function replace(path, state) {
     const newAction = actionType.push;
     const newState = Object.assign({}, state, {
-      index: location.state && location.state.index + 1,
+      index: location.state && location.state.index,
     });
     const newLocation = createLocation({ path, state: newState, basename });
     const sendData = {
@@ -158,7 +177,7 @@ export default function createBrowserHistory(options = {}) {
     if (allowTo(sendData)) {
       try {
         const url = getBaseHref() + basename + createPath(newLocation);
-        globalHistory.pushState(newState, "", url);
+        globalHistory.replaceState(newState, "", url);
       } catch (e) {
         console.error(e);
       }

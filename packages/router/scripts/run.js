@@ -4,7 +4,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const devServer = new WebpackDevServer(
 	webpack({
-		devtool: "eval",
+		devtool: "inline-source-map",
 		entry: path.resolve(__dirname, "../demo/index.js"),
 		output: {
 			path: path.resolve(__dirname, "./dist"),

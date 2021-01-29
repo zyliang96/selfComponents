@@ -1,30 +1,21 @@
-import React from "react";
+import React, { lazy } from "react";
 import ReactDom from "react-dom";
-import { createHashHistory } from "../../history/dist/history.main.js";
-import { Router, Route } from "../src/index";
+import { Router, Route, Redirect } from "../src/index";
+// import { Router, Route, Switch, withRouter, Redirect } from "react-router-dom";
 import Home from "./pages/home";
 import PageOne from "./pages/pageOne";
+import DefaultPage from "./pages/defaultPage";
+import history from "./history";
 
-const history = createHashHistory();
 function App(props) {
-	const gotoHome = () => {
-		history.push('/home/pageOne')
-	}
-	const gotoPageOne = () => {
-		history.push('/home/pageOne')
-	}
-
-	return (
-		<Router history={history}>
-			<div>
-				<div>测试页面</div>
-				<div onClick={gotoHome}>home</div>
-				<div onClick={gotoPageOne}>pageOne</div>
-			</div>
-			<Route path="/home/:test" component={Home} />
-			<Route path="/:test/pageOne" component={PageOne} />
-		</Router>
-	);
+  return (
+    <Router history={history}>
+      <Redirect exact to="/" />
+      <Route exact path="/" component={DefaultPage} />
+      <Route exact path="/home" component={Home} />
+      <Route exact path="/pageOne" component={PageOne} />
+    </Router>
+  );
 }
 
 ReactDom.render(<App />, document.getElementById("root"));

@@ -9,7 +9,7 @@ const webpackRunner = webpack({
   output: {
     path: path.resolve(__dirname, "./dist"),
     // filename: "history.[name].[chunkhash:16].js",
-    filename: "history.[name].js",
+    filename: "history.min.js",
     library: "zyliangHistory",
     libraryTarget: "umd",
   },

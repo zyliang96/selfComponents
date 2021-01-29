@@ -1,4 +1,4 @@
-import { getUniqueKey } from "./index";
+import { getUniqueKey, valueEqual } from "./index";
 
 export function createLocation(params = {}) {
   const {
@@ -22,35 +22,43 @@ export function createLocation(params = {}) {
  * @param {*}} path
  */
 export function parsePath(path, basename) {
-  let pathname = path || "/";
-  let search = "";
-  let hash = "";
+  let locationResult = {
+    pathname: "/",
+    search: "",
+    hash: "",
+  };
+
+  if (typeof path === "string") {
+    locationResult.pathname = path || "/";
+  } else {
+    locationResult = Object.assign(locationResult, { ...path });
+  }
 
   // 先过滤hash值，然后再过滤search的内容
 
-  const hashIndex = pathname.indexOf("#");
+  const hashIndex = locationResult.pathname.indexOf("#");
   // 存在hash值
   if (hashIndex > -1) {
     // hash值
-    hash = pathname.substr(hashIndex);
+    locationResult.hash = locationResult.pathname.substr(hashIndex);
     // pathname 值
-    pathname = pathname.substr(0, hashIndex);
+    locationResult.pathname = locationResult.pathname.substr(0, hashIndex);
   }
 
-  const searchIndex = pathname.indexOf("?");
+  const searchIndex = locationResult.pathname.indexOf("?");
   if (searchIndex > -1) {
     // search 值
-    search = pathname.substr(searchIndex);
+    locationResult.search = locationResult.pathname.substr(searchIndex);
     // pathname 值
-    pathname = pathname.substr(0, searchIndex);
+    locationResult.pathname = locationResult.pathname.substr(0, searchIndex);
   }
 
-  pathname = stripBasename(pathname, basename);
+  locationResult.pathname = stripBasename(locationResult.pathname, basename);
 
   return {
-    pathname,
-    search: search === "?" ? "" : search,
-    hash: hash === "#" ? "" : hash,
+    pathname: locationResult.pathname,
+    search: locationResult.search === "?" ? "" : locationResult.search,
+    hash: locationResult.hash === "#" ? "" : locationResult.hash,
   };
 }
 
@@ -95,4 +103,17 @@ export function getBaseHref() {
   }
 
   return href;
+}
+
+/**
+ * location 比较
+ */
+export function locationsAreEqual(a, b) {
+  return (
+    a.pathname === b.pathname &&
+    a.search === b.search &&
+    a.hash === b.hash &&
+    a.key === b.key &&
+    valueEqual(a.state, b.state)
+  );
 }

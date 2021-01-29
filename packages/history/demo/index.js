@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactDom from "react-dom";
-import { createHashHistory,createBrowserHistory } from "../src/index.js";
+import { createHashHistory, createBrowserHistory } from "../src/index.js";
 
 // const history = createHashHistory({
 //   isShowBeforeUnload: true,
@@ -10,12 +10,13 @@ const history = createBrowserHistory({
 });
 
 history.block((...arg) => {
-  window.confirm("是否确定跳转？");
-  console.log(arg);
-  if (arg[0] && arg[0].action === "POP") {
-    return false;
-  }
-  return true;
+  const result = window.confirm("是否确定跳转？");
+  // const result = true;
+  // console.log(arg,result);
+  // if (arg[0] && arg[0].action === "POP") {
+  //   return false;
+  // }
+  return result;
 });
 unListen = history.listen((arg) => {
   console.log("history listen");

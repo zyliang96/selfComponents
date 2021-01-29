@@ -8,14 +8,19 @@ function isEmptyChildren(children) {
 }
 
 function Route(props) {
-  const { path, component, children, render } = props;
+  const { path, component, children, render, computedMatch } = props;
   return (
     <RouterContext.Consumer>
       {(context) => {
+        console.log("Route");
         const { history, location, match } = context;
         const nowLocation = props.location || location;
-        // nowMatch 是根据 path 生成的正则表达是匹配的
-        const nowMatch = path ? matchPath(nowLocation.pathname, props) : match;
+        // nowMatch 是根据 path 生成的正则表达是匹配的，computedMatch 是用在Switch中的，这个时候已经匹配过了，所以就不需要再走matchPath的逻辑了
+        const nowMatch = computedMatch
+          ? computedMatch
+          : path
+          ? matchPath(nowLocation.pathname, props)
+          : match;
         const newProps = { ...context, nowLocation, nowMatch };
 
         if (Array.isArray(children) && isEmptyChildren(children)) {

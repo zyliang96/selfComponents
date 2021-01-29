@@ -29,9 +29,14 @@ export default function createHashHistory(options = {}) {
   const globalHistory = window.history;
 
   // 订阅者队列
-  const listeners = createEventList();
+  const listeners = createEventList({
+    removeCallback: removeHashChangeEventListenFunc,
+  });
   // 提示事件队列
-  const blockers = createEventList({ isNeedResult: true });
+  const blockers = createEventList({
+    isNeedResult: true,
+    removeCallback: removeHashChangeEventListenFunc,
+  });
 
   let action = actionType.pop;
   let location = createLocation({
@@ -41,9 +46,9 @@ export default function createHashHistory(options = {}) {
   });
 
   /**
-   * 设置监听,只有再go,back,forward三种情况下会触发
+   * hashChangeEvent 监听方法
    */
-  window.addEventListener(HashChangeEventType, (event) => {
+  function hashChangeEventListenFunc(event) {
     let nextLocation = createLocation({
       path: window.location.hash.substr(1),
       basename,
@@ -55,7 +60,16 @@ export default function createHashHistory(options = {}) {
     if (createPath(nextLocation) !== createPath(location)) {
       handlePop(nextLocation);
     }
-  });
+  }
+
+  function removeHashChangeEventListenFunc() {
+    window.removeEventListener(HashChangeEventType, hashChangeEventListenFunc);
+  }
+
+  /**
+   * 设置监听,只有再go,back,forward三种情况下会触发
+   */
+  window.addEventListener(HashChangeEventType, hashChangeEventListenFunc);
 
   let blockedPopTx = null;
   /**
@@ -73,7 +87,9 @@ export default function createHashHistory(options = {}) {
         let isOk = blockers.call(sendData);
         if (!isOk) {
           const lastIndex = location.state.index - nextLocation.state.index;
-          go(lastIndex)
+          go(lastIndex);
+        } else {
+          location = nextLocation;
         }
       } else {
         applyTo(sendData);
@@ -99,7 +115,7 @@ export default function createHashHistory(options = {}) {
    * 是否允许跳转
    */
   function allowTo(props) {
-	const { action, location } = props;
+    const { action, location } = props;
     return !blockers.length || blockers.call({ action, location });
   }
 
@@ -146,7 +162,7 @@ export default function createHashHistory(options = {}) {
   function replace(path, state) {
     const newAction = actionType.push;
     const newState = Object.assign({}, state, {
-      index: location.state && location.state.index + 1,
+      index: location.state && location.state.index,
     });
     const newLocation = createLocation({ path, state: newState, basename });
     const sendData = {
@@ -156,7 +172,7 @@ export default function createHashHistory(options = {}) {
     if (allowTo(sendData)) {
       try {
         const url = getBaseHref() + "#" + basename + createPath(newLocation);
-        globalHistory.pushState(newState, "", url);
+        globalHistory.replaceState(newState, "", url);
       } catch (e) {
         console.error(e);
       }
