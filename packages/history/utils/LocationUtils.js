@@ -1,4 +1,5 @@
 import { getUniqueKey, valueEqual } from "./index";
+import resolvePathName from "resolve-pathname";
 
 export function createLocation(params = {}) {
   const {
@@ -8,8 +9,9 @@ export function createLocation(params = {}) {
     state = {
       index: 0,
     }, // 状态参数
+    currentLocation, // 当前location
   } = params;
-  const basePathInfo = parsePath(path, basename);
+  const basePathInfo = parsePath(path, basename, currentLocation);
   return {
     ...basePathInfo,
     key,
@@ -21,7 +23,7 @@ export function createLocation(params = {}) {
  * 解析路径
  * @param {*}} path
  */
-export function parsePath(path, basename) {
+export function parsePath(path, basename, currentLocation) {
   let locationResult = {
     pathname: "/",
     search: "",
@@ -54,6 +56,22 @@ export function parsePath(path, basename) {
   }
 
   locationResult.pathname = stripBasename(locationResult.pathname, basename);
+
+  if (currentLocation) {
+    if (!locationResult.pathname) {
+      locationResult.pathname = currentLocation.pathname;
+    } else if (locationResult.pathname.charAt(0) !== "/") {
+      locationResult.pathname = resolvePathname(
+        locationResult.pathname,
+        currentLocation.pathname
+      );
+    }
+  } else {
+    // When there is no prior location and pathname is empty, set it to /
+    if (!locationResult.pathname) {
+      locationResult.pathname = "/";
+    }
+  }
 
   return {
     pathname: locationResult.pathname,

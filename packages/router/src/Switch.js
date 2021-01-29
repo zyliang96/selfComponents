@@ -29,3 +29,5 @@ function Switch(props) {
     </RouterContext.Consumer>
   );
 }
+
+export default Switch

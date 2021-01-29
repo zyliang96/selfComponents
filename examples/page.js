@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import Header from "./components/header";
 import pageConfig from "./pageConfig";
-import { Router, Route } from "../packages/router/src";
+import {
+  HashRouter as Router,
+  Route,
+  Redirect,
+  Switch,
+} from "./utils/router.js";
+import Home from "./pages/home";
 
 function Page(props) {
   const [currentPage, setCurrentPage] = useState(() => {
@@ -26,10 +32,14 @@ function Page(props) {
         onChange={headerTabOnChange}
         value={currentPage}
       />
-      {/* <div className="content">
-        <div className="left"></div>
-        <div className="right"></div>
-      </div> */}
+      <Router>
+        <Redirect exact to="/home" />
+        <Switch>
+          {/* <Route exact path="/" component={DefaultPage} /> */}
+          <Route exact path="/home" component={Home} />
+          {/* <Route exact path="/pageOne" component={PageOne} /> */}
+        </Switch>
+      </Router>
     </div>
   );
 }

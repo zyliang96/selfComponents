@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-examples": "webpack --config ./config/webpack.examples.config.js serve --open",
+    "build": "cd scripts && node build.js",
     "dev": "cd scripts && node run.js"
   },
   "author": "",
@@ -21,6 +21,7 @@
     "babel-loader": "^8.2.2",
     "buffer": "^6.0.3",
     "clean-webpack-plugin": "^3.0.0",
+    "compression-webpack-plugin": "^7.1.2",
     "crypto-browserify": "^3.12.0",
     "history": "^5.0.0",
     "html-webpack-plugin": "^4.5.1",
