@@ -27,7 +27,7 @@ const devServer = new WebpackDevServer(
           loader: "ejs-loader",
         },
         {
-          test: /\.(tsx|js)?$/,
+          test: /\.(tsx?|js)$/,
           use: {
             loader: "babel-loader",
             options: {
@@ -62,7 +62,7 @@ const devServer = new WebpackDevServer(
         {
           test: /\.md$/,
           loader: "raw-loader",
-        }
+        },
       ],
     },
     mode: "development",
@@ -72,7 +72,7 @@ const devServer = new WebpackDevServer(
         "@": path.resolve("src"),
       },
     },
-    watch:true
+    watch: true,
   }),
   {
     publicPath: "/",

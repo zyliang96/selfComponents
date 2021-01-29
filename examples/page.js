@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "./components/header";
 import pageConfig from "./pageConfig";
 import {
-  HashRouter as Router,
+  BrowserRouter as Router,
   Route,
   Redirect,
   Switch,
 } from "./utils/router.js";
 import Home from "./pages/home";
+import ComponentButton from "./pages/component/button";
 
 function Page(props) {
   const [currentPage, setCurrentPage] = useState(() => {
@@ -33,10 +34,11 @@ function Page(props) {
         value={currentPage}
       />
       <Router>
-        <Redirect exact to="/home" />
+        <Redirect exact to="/component/button" />
         <Switch>
           {/* <Route exact path="/" component={DefaultPage} /> */}
           <Route exact path="/home" component={Home} />
+          <Route exact path="/component/button" component={ComponentButton} />
           {/* <Route exact path="/pageOne" component={PageOne} /> */}
         </Switch>
       </Router>
