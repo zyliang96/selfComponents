@@ -1,5 +1,9 @@
-import { createHashHistory } from "../utils/history.min.js";
-const history = createHashHistory();
+import {
+	createHashHistory,
+	createBrowserHistory,
+} from "../utils/history.min.js";
+// const history = createHashHistory();
+const history = createBrowserHistory();
 
 // const createHistory = require("history").createHashHistory;
 // const history = createHistory();

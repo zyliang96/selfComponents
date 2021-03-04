@@ -10,7 +10,7 @@ import history from "./history";
 function App(props) {
   return (
     <Router history={history}>
-      <Redirect exact to="/" />
+      {/* <Redirect exact to="/" /> */}
       <Switch>
         <Route exact path="/" component={DefaultPage} />
         <Route exact path="/home" component={Home} />

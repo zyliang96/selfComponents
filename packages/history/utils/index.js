@@ -117,7 +117,7 @@ export function valueEqual(valueA, valueB) {
         }
       }
     } else {
-      return falsei;
+      return false;
     }
   }
 

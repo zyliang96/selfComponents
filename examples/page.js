@@ -1,49 +1,91 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, lazy, Suspense } from "react";
 import Header from "./components/header";
 import pageConfig from "./pageConfig";
 import {
-  BrowserRouter as Router,
-  Route,
-  Redirect,
-  Switch,
+	Router,
+	Route,
+	Redirect,
+	Switch,
+	WithRouter,
+	matchPath,
 } from "./utils/router.js";
-import Home from "./pages/home";
-import ComponentButton from "./pages/component/button";
-
+import { addLeadingSlash } from "./utils/history.min.js";
+import history from "./history";
 function Page(props) {
-  const [currentPage, setCurrentPage] = useState(() => {
-    return pageConfig[0].key || null;
-  }); // 当前页面
+	const [currentPage, setCurrentPage] = useState(() => {
+		let match = null;
+		let key = null;
+		const locationPathName = window.location.pathname;
+		pageConfig.forEach((item) => {
+			if (match == null) {
+				const path = addLeadingSlash(item.path);
+				match = matchPath(locationPathName, { path });
 
-  const [currentMenu, setCurrentMenu] = useState([]); // 当前菜单
-  const headerTabOnChange = (key) => {
-    setCurrentPage(key);
-  };
+				if (match) {
+					key = item.key;
+				}
+			}
+		});
+		return key || pageConfig[0].key || null;
+	}); // 当前页面
+	/**
+	 * 头部点击
+	 */
+	const headerTabOnChange = (key) => {
+		setCurrentPage(key);
+	};
 
-  useEffect(() => {
-    if (currentPage) {
-      // pageConfig.
-    }
-  }, [currentPage]);
+	useEffect(() => {
+		if (currentPage && Array.isArray(pageConfig)) {
+			const len = pageConfig.length;
+			for (let i = 0; i < len; i++) {
+				const item = pageConfig[i];
+				if (currentPage === item.key) {
+					history.push(item.path);
+				}
+			}
+		}
+	}, [currentPage]);
 
-  return (
-    <div className="home-components-box">
-      <Header
-        list={pageConfig}
-        onChange={headerTabOnChange}
-        value={currentPage}
-      />
-      <Router>
-        <Redirect exact to="/component/button" />
-        <Switch>
-          {/* <Route exact path="/" component={DefaultPage} /> */}
-          <Route exact path="/home" component={Home} />
-          <Route exact path="/component/button" component={ComponentButton} />
-          {/* <Route exact path="/pageOne" component={PageOne} /> */}
-        </Switch>
-      </Router>
-    </div>
-  );
+	return (
+		<div className="home-components-box">
+			<Header
+				list={pageConfig}
+				onChange={headerTabOnChange}
+				value={currentPage}
+			/>
+			<Suspense fallback={<div>Loading...</div>}>
+				<Router history={history}>
+					<Switch>
+						<Route
+							path={"/"}
+							exact
+							render={(props) => (
+								<Redirect to={{ pathname: pageConfig[0].path }} />
+							)}
+						/>
+						{Array.isArray(pageConfig) &&
+							pageConfig.map((item) => {
+								return (
+									<Route
+										key={item.key}
+										exact
+										path={item.path}
+										component={() => {
+											const Comp = lazy(() =>
+												import(`./pages${item.componentPath}`)
+											);
+											const Result = WithRouter(Comp);
+											return <Result />;
+										}}
+									/>
+								);
+							})}
+					</Switch>
+				</Router>
+			</Suspense>
+		</div>
+	);
 }
 
 export default Page;

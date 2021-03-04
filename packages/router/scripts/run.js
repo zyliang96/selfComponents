@@ -63,7 +63,7 @@ const devServer = new WebpackDevServer(
 	{
 		publicPath: "/",
 		hot: true,
-		historyApiFallback: false,
+		historyApiFallback: true,
 		stats: { colors: true },
 		disableHostCheck: true,
 		host: "127.0.0.1",
