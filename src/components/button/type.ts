@@ -13,7 +13,8 @@ export enum ShapeEnum {
  * button的类型
  */
 export enum ButtonTypeEnum {
-  primary = "primary", // 实心按钮
+  primary = "primary", // 实心
+  primaryBorder = "primary-border", // 边框
   link = "link", // link 文本
   dashed = "dashed", // 虚线
   default = "default", // 默认

@@ -4,7 +4,7 @@ import React from "react";
  */
 export enum SizeEnum {
   large = "large", // 大
-  middle = "middle", // 中
+  default = "default", // 默认
   small = "small", // 小
 }
 
@@ -14,4 +14,5 @@ export enum SizeEnum {
 export interface BaseProps {
   size?: SizeEnum; // 大小
   children?: React.ReactChild;
+  prefixCls?:String; // 样式前缀
 }
