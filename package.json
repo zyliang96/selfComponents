@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-examples": "webpack --config ./config/webpack.examples.config.js serve --open",
-    "dev": "cd examples && node run.js"
+    "dev": "node ./server.js",
+    "next-dev": "next"
   },
   "keywords": [
     "components"
@@ -21,24 +22,32 @@
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-react": "^7.12.10",
     "@babel/preset-typescript": "^7.12.7",
+    "@types/node": "^14.14.35",
     "babel-loader": "^8.2.2",
     "css-loader": "^5.0.1",
     "ejs-loader": "^0.5.0",
     "file-loader": "^6.2.0",
+    "highlight.js": "^10.0.3",
     "html-webpack-plugin": "^4.5.1",
     "less": "^4.1.0",
     "less-loader": "^7.2.1",
     "raw-loader": "^4.0.2",
     "sass-loader": "^10.1.1",
     "style-loader": "^2.0.0",
+    "typescript": "^4.2.3",
     "url-loader": "^4.1.1",
     "webpack": "^5.11.1",
     "webpack-cli": "^4.3.1",
     "webpack-dev-server": "^3.11.1"
   },
   "dependencies": {
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.2",
     "classnames": "^2.2.6",
     "history": "^5.0.0",
+    "koa": "^2.13.1",
+    "marked": "^2.0.1",
+    "next": "^10.0.9",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0"

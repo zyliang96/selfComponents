@@ -1,0 +1,78 @@
+.component-box {
+    padding-top: 20px;
+    display: flex;
+    overflow-y: auto;
+    max-width: 100%;
+    background: #fff;
+    position: relative;
+
+    .left-menu {
+        width: 20%;
+        overflow: hidden;
+        flex: none;
+        height: calc(100vh - 84px);
+        .container {
+            height: 100%;
+            max-height: 100vh;
+            overflow: hidden;
+            .menu-inline {
+                display: block;
+                min-height: 100%;
+                border-right: 1px solid #f0f0f0;
+            }
+            .menu-item {
+                overflow: hidden;
+                font-size: 14px;
+                text-overflow: ellipsis;
+                height: 40px;
+                line-height: 40px;
+                padding-left: 40px;
+                box-sizing: border-box;
+                cursor: default;
+                &-click {
+                    cursor: pointer;
+                }
+                &-name {
+                    padding-left: 50px;
+                    color: rgba(0, 0, 0, 0.85);
+
+                    &:hover {
+                        color: #1890ff;
+                    }
+                }
+                &-group-name {
+                    font-weight: bold;
+                    margin: 5px 0;
+                }
+                &-group-type-name {
+                    padding-left: 45px;
+                    color: rgba(0, 0, 0, 0.45);
+                    margin: 5px 0;
+                    &::after {
+                        content: "";
+                        top: -2px;
+                        position: relative;
+                        display: block;
+                        width: calc(100% - 20px);
+                        height: 1px;
+                        background: #f0f0f0;
+                    }
+                }
+            }
+            .menu-item-current {
+                background-color: #e6f7ff;
+                color: #1890ff;
+            }
+        }
+        &:hover {
+            .container {
+                overflow-y: auto;
+            }
+        }
+    }
+
+    .right-content {
+        min-height: 500px;
+        padding: 0 170px 32px 64px;
+    }
+}
