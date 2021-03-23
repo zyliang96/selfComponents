@@ -1,10 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-import "./index.less";
-// import Button from "../../../../src/components/button";
+import markdownCreator from "../../../lib/markdownParser";
 
-function ButtonPage(props) {
-  // return <Button>测试</Button>;
-  return <div>测试</div>
-}
-
-export default ButtonPage;
+const md = require('./description.md')
+export default markdownCreator(md.default)

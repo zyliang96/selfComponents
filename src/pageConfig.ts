@@ -17,7 +17,7 @@ export default [
 		name: "组件",
 		key: "component",
 		path: "component",
-		type: pageType.component,
+		type: pageType.components,
 		componentPath: "/component/index",
 	},
 ];
