@@ -52,7 +52,6 @@ Array.isArray(menuList) &&
 function Component(props) {
     const [currentMenuPath, setCurrentMenuPath] = useState(""); // 当前菜单Path
     const currentComponentRef = useRef(null);
-
     // 具体菜单的样式
     const menuItemClassName: (menu: MenuItemObject) => Object = (item) => {
         const { type, path } = item;

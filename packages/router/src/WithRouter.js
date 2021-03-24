@@ -11,6 +11,7 @@ import RouterContext from "./RouterContext.js";
  */
 function withRouter(Component) {
 	const displayName = `withRouter(${Component.displayName || Component.name})`;
+	console.log(displayName)
 	const C = (props) => {
 		const { wrappedComponentRef, ...remainingProps } = props;
 

@@ -8,6 +8,7 @@ const devServer = new WebpackDevServer(
         devtool: "inline-source-map",
         entry: [path.resolve(__dirname, "../src/index.tsx")],
         output: {
+            publicPath: "/",
             path: path.resolve(__dirname, "../dist"),
             filename: "bundle.js",
         },
@@ -82,6 +83,7 @@ const devServer = new WebpackDevServer(
         disableHostCheck: true,
         host: "127.0.0.1",
         open: true,
+        inline:true,
     }
 );
 devServer.listen(8001, "0.0.0.0", (error) => {

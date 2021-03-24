@@ -7,6 +7,7 @@ const devServer = new WebpackDevServer(
 		devtool: "inline-source-map",
 		entry: path.resolve(__dirname, "../demo/index.js"),
 		output: {
+			publicPath: "/",
 			path: path.resolve(__dirname, "./dist"),
 			filename: "router.[name].js",
 		},
@@ -67,6 +68,8 @@ const devServer = new WebpackDevServer(
 		stats: { colors: true },
 		disableHostCheck: true,
 		host: "127.0.0.1",
+		index: 'index.html',
+		inline: true,
 		open: true,
 	}
 );

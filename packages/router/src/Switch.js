@@ -6,7 +6,6 @@ function Switch(props) {
 		<RouterContext.Consumer>
 			{(context) => {
 				const location = props.location || context.location;
-
 				let element, match;
 
 				React.Children.forEach(props.children, (child) => {
@@ -15,7 +14,6 @@ function Switch(props) {
 						element = child;
 
 						const path = child.props.path || child.props.from;
-
 						match = path
 							? matchPath(location.pathname, { ...child.props, path })
 							: context.match;
