@@ -6,7 +6,7 @@ import { transform } from "babel-standalone";
 import Editor from "../editor";
 import classnames from "classnames";
 import "babel-polyfill";
-export default function RenderSource(props) {
+export default function codeParser(props) {
     const [id, setId] = useState(() => {
         return randomString(16);
     });

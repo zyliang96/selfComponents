@@ -4,27 +4,16 @@ Displays important alert messages.
 
 ### Basic usage
 
+
+![测试](/images/noExpert.png)
+
 Alert components are non-overlay elements in the page that does not disappear automatically.
 
 :::demo Alert provides 4 types of themes defined by `type`, whose default value is `info`.
 
 ```js
 function ChooseSeatDemo(props) {
-    const [visible, setVisible] = React.useState(false);
-
-    const handlePassRoomSeat = (arr) => {
-        console.log(arr);
-        setVisible(false);
-    };
-    const handleHideModal = () => {
-        setVisible(false);
-    };
-
-    return (
-        <div>
-            <div>测试问题</div>
-        </div>
-    );
+    console.log(11111)
 }
 ```
 

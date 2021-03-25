@@ -1,11 +1,16 @@
-import { MenuItemObject, ArticleClassifyEnum, MenuTypeEnum } from "./type";
-const menuList: Array<MenuItemObject> = [
+import {
+    MenuItemObject,
+    ArticleClassifyEnum,
+    MenuTypeEnum,
+    BlogTypeItem,
+} from "./type";
+const list: Array<MenuItemObject> = [
     {
         title: "测试文章",
         description: "这是文章的描述", // 描述
         time: "2021-03-24", // 时间
         classify: [ArticleClassifyEnum.javaScript, ArticleClassifyEnum.css], // 分类
-        key: "1", // 详情页获取key
+        key: "test_article", // 详情页获取key
         type: MenuTypeEnum.article, // 类型
         detail: require("./article/test.md"), // 对应的文章
     },
@@ -14,7 +19,7 @@ const menuList: Array<MenuItemObject> = [
         description: "这是专栏的描述", // 描述
         time: "2021-03-24", // 时间
         classify: [ArticleClassifyEnum.javaScript, ArticleClassifyEnum.css], // 分类
-        key: "1", // 详情页获取key
+        key: "test_column", // 详情页获取key
         type: MenuTypeEnum.column, // 类型
         children: [
             {
@@ -25,7 +30,7 @@ const menuList: Array<MenuItemObject> = [
                     ArticleClassifyEnum.javaScript,
                     ArticleClassifyEnum.css,
                 ], // 分类
-                key: "1", // 详情页获取key
+                key: "test_column_one", // 详情页获取key
                 type: MenuTypeEnum.article, // 类型
                 detail: require("./column/test/test.md"), // 对应的文章
             },
@@ -36,6 +41,7 @@ const menuList: Array<MenuItemObject> = [
 let articleList: Array<MenuItemObject> = []; // 文章列表
 let columnList: Array<MenuItemObject> = []; // 专栏列表
 let classifyList: Array<ArticleClassifyEnum> = []; // 分类列表
+let classifyTotalList: Array<number> = []; // 分类计数
 function getDetailList(list: Array<MenuItemObject>) {
     if (Array.isArray(list)) {
         list.forEach((item) => {
@@ -51,8 +57,12 @@ function getDetailList(list: Array<MenuItemObject>) {
             }
             if (Array.isArray(item.classify)) {
                 item.classify.forEach((item) => {
-                    if (classifyList.indexOf(item) < 0) {
+                    const index = classifyList.indexOf(item);
+                    if (index < 0) {
                         classifyList.push(item);
+                        classifyTotalList.push(0);
+                    } else {
+                        classifyTotalList[index]++;
                     }
                 });
             }
@@ -62,7 +72,7 @@ function getDetailList(list: Array<MenuItemObject>) {
         });
     }
 }
-getDetailList(menuList);
+getDetailList(list);
 
 // 根据时间排序
 function sortByTime(list: Array<MenuItemObject>) {
@@ -73,8 +83,21 @@ function sortByTime(list: Array<MenuItemObject>) {
     });
 }
 
+const menuList: Array<BlogTypeItem> = [
+    {
+        type: MenuTypeEnum.article,
+        name: "文章",
+    },
+    {
+        type: MenuTypeEnum.column,
+        name: "专栏",
+    },
+];
+
 export default {
     articleList: sortByTime(articleList), // 文章列表
     columnList: sortByTime(columnList), // 专栏列表
-    classifyList, //
+    classifyList, // 分类列表
+    classifyTotalList, // 分类列表计数
+    menuList,
 };

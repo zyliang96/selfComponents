@@ -25,3 +25,13 @@ export interface MenuItemObject {
     children?: Array<MenuItemObject>; // 专栏下的文章列表
     detail?: any; // 对应的文章
 }
+
+// 类型列表
+export interface BlogTypeItem {
+    type:MenuTypeEnum;
+    name:string;
+}
+
+export interface ObjectData {
+    [name: string]: any;
+}

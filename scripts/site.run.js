@@ -57,8 +57,33 @@ const devServer = new WebpackDevServer(
                     loader: "file-loader",
                 },
                 {
+                    test: /favicon\.png$/,
+                    use: [
+                        {
+                            loader: "file-loader",
+                            options: {
+                                name: "[name].[ext]?[hash]",
+                            },
+                        },
+                    ],
+                },
+                {
                     test: /\.(jpe?g|png|gif)(\?.+)?$/,
                     loader: "url-loader",
+                },
+                {
+                    test: /\.(png|jpg|jpeg|gif|svg|svgz)$/,
+                    include: [path.resolve(__dirname, "../src/pages/blog")],
+                    use: [
+                        {
+                            loader: "url-loader",
+                            options: {
+                                name: "images/[name].[ext]",
+                                publicPath: "/",
+                                limit: 4096,
+                            },
+                        },
+                    ],
                 },
                 {
                     test: /\.md$/,
@@ -83,7 +108,7 @@ const devServer = new WebpackDevServer(
         disableHostCheck: true,
         host: "127.0.0.1",
         open: true,
-        inline:true,
+        inline: true,
     }
 );
 devServer.listen(8001, "0.0.0.0", (error) => {
