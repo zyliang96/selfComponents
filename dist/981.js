@@ -1,0 +1,1 @@
+(self.webpackChunkselfcomponents=self.webpackChunkselfcomponents||[]).push([[981],{60981:(e,n,p)=>{"use strict";var u;p.r(n),p.d(n,{MenuTypeEnum:()=>u}),function(e){e.name="name",e.groupName="group-name",e.groupTypeName="group-type-name"}(u||(u={}))}}]);
