@@ -5,11 +5,11 @@ const TerserPlugin = require("terser-webpack-plugin");
 const CompressionWebpackPlugin = require("compression-webpack-plugin");
 const webpackRunner = webpack({
   mode: "production",
-  devtool: "inline-source-map",
+  // devtool: "inline-source-map",
   entry: "../src/index.js",
   output: {
     path: path.resolve(__dirname, "../dist"),
-    filename: "router.js",
+    filename: "router.[contenthash].js",
     library: "zyliangRouter",
     libraryTarget: "umd",
   },
@@ -27,30 +27,6 @@ const webpackRunner = webpack({
             presets: ["@babel/preset-env", "@babel/preset-react"],
           },
         },
-      },
-      {
-        test: /\.css$/,
-        use: ["style-loader", "css-loader"],
-      },
-      {
-        test: /\.less$/,
-        use: ["style-loader", "css-loader", "less-loader"],
-      },
-      {
-        test: /\.scss$/,
-        use: ["style-loader", "css-loader", "sass-loader"],
-      },
-      {
-        test: /\.(eot|svg|ttf|woff|woff2)(\?.+)?$/,
-        loader: "file-loader",
-      },
-      {
-        test: /\.(jpe?g|png|gif)(\?.+)?$/,
-        loader: "url-loader",
-      },
-      {
-        test: /\.md$/,
-        loader: "raw-loader",
       },
     ],
   },
@@ -77,12 +53,6 @@ const webpackRunner = webpack({
       commonjs2: "react-dom",
       commonjs: "react-dom",
       amd: "react-dom",
-    },
-    "dpl-react": {
-      root: "DplReact",
-      commonjs2: "dpl-react",
-      commonjs: "dpl-react",
-      amd: "dpl-react",
     },
   },
 });

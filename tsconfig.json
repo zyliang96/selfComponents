@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    // "strict": true,
+    "strict": true,
     // "strictPropertyInitialization": false,
     // "forceConsistentCasingInFileNames": true,
     "jsx": "preserve",
