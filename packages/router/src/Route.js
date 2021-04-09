@@ -4,28 +4,28 @@ import { matchPath } from "./match";
 
 // 判断是否是空的子列表
 function isEmptyChildren(children) {
-  return React.Children.count(children) === 0;
+    return React.Children.count(children) === 0;
 }
 
 function Route(props) {
-  const { path, component, children, render, computedMatch } = props;
-  return (
-    <RouterContext.Consumer>
-      {(context) => {
-        const { history, location, match } = context;
-        const nowLocation = props.location || location;
-        // nowMatch 是根据 path 生成的正则表达是匹配的，computedMatch 是用在Switch中的，这个时候已经匹配过了，所以就不需要再走matchPath的逻辑了
-        const nowMatch = computedMatch
-          ? computedMatch
-          : path
-          ? matchPath(nowLocation.pathname, props)
-          : match;
-        const newProps = { ...context, nowLocation, nowMatch };
+    const { path, component, children, render, computedMatch } = props;
+    return (
+        <RouterContext.Consumer>
+            {(context) => {
+                const { history, location, match } = context;
+                const nowLocation = props.location || location;
+                // nowMatch 是根据 path 生成的正则表达是匹配的，computedMatch 是用在Switch中的，这个时候已经匹配过了，所以就不需要再走matchPath的逻辑了
+                const nowMatch = computedMatch
+                    ? computedMatch
+                    : path
+                    ? matchPath(nowLocation.pathname, props)
+                    : match;
+                const newProps = { ...context, nowLocation, nowMatch };
 
-        if (Array.isArray(children) && isEmptyChildren(children)) {
-          children = null;
-        }
-        /**
+                if (Array.isArray(children) && isEmptyChildren(children)) {
+                    children = null;
+                }
+                /**
 		 * 判断逻辑 
 		 * 1、判断 nowMatch 是否存在
 		 * 2、nowMatch 存在 则 判断 children 是否存在
@@ -41,26 +41,26 @@ function Route(props) {
 		 		3.1、是function 则 children(newProps)
 				3.2、不是 function 则 children
 		 */
-        return (
-          <RouterContext.Provider value={newProps}>
-            {nowMatch
-              ? children
-                ? typeof children === "function"
-                  ? children(newProps)
-                  : children
-                : component
-                ? React.createElement(component, newProps)
-                : render
-                ? render(newProps)
-                : null
-              : typeof children === "function"
-              ? children(newProps)
-              : children}
-          </RouterContext.Provider>
-        );
-      }}
-    </RouterContext.Consumer>
-  );
+                return (
+                    <RouterContext.Provider value={newProps}>
+                        {nowMatch
+                            ? children
+                                ? typeof children === "function"
+                                    ? children(newProps)
+                                    : children
+                                : component
+                                ? React.createElement(component, newProps)
+                                : render
+                                ? render(newProps)
+                                : null
+                            : typeof children === "function"
+                            ? children(newProps)
+                            : children}
+                    </RouterContext.Provider>
+                );
+            }}
+        </RouterContext.Consumer>
+    );
 }
 
 export default Route;
