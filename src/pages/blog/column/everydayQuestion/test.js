@@ -16,7 +16,7 @@ function quickSort(li, str, end) {
         }
         li[r] = li[l];
 ``
-    }
+    }``
     li[l] = mid;
     console.log(li)
     quickSort(li, str, l - 1);
