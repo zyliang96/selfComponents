@@ -11,3 +11,19 @@ export default function Child(props) {
         </>
     );
 }
+
+
+function test(a,b){
+    if(1 == a){
+        return b
+    }else if ( 2 == a){
+        return b << 1
+    }else{
+        let temp = a;
+        if(a == (temp >> 1) << 1){
+            return test(a >> 1, b << 1)
+        }else{
+             return b + test(a >> 1, b << 1)
+        }
+    }
+}
