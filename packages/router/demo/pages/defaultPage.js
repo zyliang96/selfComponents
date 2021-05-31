@@ -1,7 +1,7 @@
 import React from "react";
 import history from "../history";
-// import { Router, Route, Redirect, Switch, Link } from "../../src/index";
-import { Router, Route, Redirect, Switch, Link } from "react-router-dom";
+import { Router, Route, Redirect, Switch, Link } from "../../src/index";
+// import { Router, Route, Redirect, Switch, Link } from "react-router-dom";
 
 export default function DefaultPage(props) {
 	const gotoHome = () => {

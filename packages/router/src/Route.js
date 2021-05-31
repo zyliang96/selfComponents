@@ -13,6 +13,7 @@ function Route(props) {
         <RouterContext.Consumer>
             {(context) => {
                 const { history, location, match } = context;
+                console.log(props.location, props.computedMatch);
                 const nowLocation = props.location || location;
                 // nowMatch 是根据 path 生成的正则表达是匹配的，computedMatch 是用在Switch中的，这个时候已经匹配过了，所以就不需要再走matchPath的逻辑了
                 const nowMatch = computedMatch
