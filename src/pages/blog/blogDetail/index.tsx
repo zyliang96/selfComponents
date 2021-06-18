@@ -52,9 +52,11 @@ function BlogDetail(props) {
                     <div className="title">
                         <span>{detail.title}</span>
                     </div>
-                    <div className="time">
-                        <span>{detail.time}</span>
-                    </div>
+                    {detail.time && (
+                        <div className="time">
+                            <span>{detail.time}</span>
+                        </div>
+                    )}
                     <div className="classify">
                         {Array.isArray(detail.classify) &&
                             detail.classify.map((item) => {

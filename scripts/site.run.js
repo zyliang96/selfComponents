@@ -86,6 +86,20 @@ const devServer = new WebpackDevServer(
 					],
 				},
 				{
+					test: /\.(xmind)$/,
+					include: [path.resolve(__dirname, "../src/pages/blog")],
+					use: [
+						{
+							loader: "url-loader",
+							options: {
+								name: "file/[name].[ext]",
+								publicPath: "/",
+								limit: 4096,
+							},
+						},
+					],
+				},
+				{
 					test: /\.md$/,
 					loader: "raw-loader",
 				},

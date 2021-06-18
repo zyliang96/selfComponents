@@ -15,24 +15,46 @@ const list: Array<MenuItemObject> = [
         detail: require("./article/test.md"), // 对应的文章
     },
     {
-        title: "测试专栏",
-        description: "这是专栏的描述", // 描述
+        title: "每日一问",
+        description: "前端技能每日一问", // 描述
         time: "2021-03-24", // 时间
         classify: [ArticleClassifyEnum.javaScript, ArticleClassifyEnum.css], // 分类
-        key: "test_column", // 详情页获取key
+        key: "day_question", // 详情页获取key
         type: MenuTypeEnum.column, // 类型
         children: [
             {
-                title: "测试文章",
-                description: "这是文章的描述", // 描述
+                title: "2021年04月07日————每日一问",
+                description: "Vue常用命令", // 描述
                 time: "2021-03-24", // 时间
                 classify: [
                     ArticleClassifyEnum.javaScript,
                     ArticleClassifyEnum.css,
                 ], // 分类
-                key: "test_column_one", // 详情页获取key
+                key: "day_question_20210407", // 详情页获取key
                 type: MenuTypeEnum.article, // 类型
-                detail: require("./column/test/test.md"), // 对应的文章
+                detail: require("./column/每日一问/20210407.md"), // 对应的文章
+            },
+        ],
+    },
+    {
+        title: "Vue源码分析",
+        description: "Vue源码阅读解析", // 描述
+        time: "2021-03-24", // 时间
+        classify: [ArticleClassifyEnum.javaScript, ArticleClassifyEnum.css], // 分类
+        key: "vue_source_analyse", // 详情页获取key
+        type: MenuTypeEnum.column, // 类型
+        children: [
+            {
+                title: "Vue源码分析01",
+                description: "Vue源码分析01", // 描述
+                time: "2021-03-24", // 时间
+                classify: [
+                    ArticleClassifyEnum.javaScript,
+                    ArticleClassifyEnum.css,
+                ], // 分类
+                key: "vue_source_analyse_01", // 详情页获取key
+                type: MenuTypeEnum.article, // 类型
+                detail: require("./column/Vue源码分析/Vue-analyse-01.md"), // 对应的文章
             },
         ],
     },
