@@ -37,11 +37,13 @@ import { warn } from "../util/index";
 
 // 构造函数声明
 function Vue(options) {
-	if (process.env.NODE_ENV !== "production" && !(this instanceof Vue)) {
-		warn("Vue is a constructor and should be called with the `new` keyword");
-	}
-	// 初始化
-	this._init(options);
+    if (process.env.NODE_ENV !== "production" && !(this instanceof Vue)) {
+        warn(
+            "Vue is a constructor and should be called with the `new` keyword"
+        );
+    }
+    // 初始化
+    this._init(options);
 }
 
 // 初始化实例方法和属性
@@ -65,16 +67,16 @@ initMixin 方法在 Vue 的原型上设置了\_init 方法，这个方法在 new
 
 ```javascript
 if (options && options._isComponent) {
-	// optimize internal component instantiation
-	// since dynamic options merging is pretty slow, and none of the
-	// internal component options needs special treatment.
-	initInternalComponent(vm, options);
+    // optimize internal component instantiation
+    // since dynamic options merging is pretty slow, and none of the
+    // internal component options needs special treatment.
+    initInternalComponent(vm, options);
 } else {
-	vm.$options = mergeOptions(
-		resolveConstructorOptions(vm.constructor),
-		options || {},
-		vm
-	);
+    vm.$options = mergeOptions(
+        resolveConstructorOptions(vm.constructor),
+        options || {},
+        vm
+    );
 }
 ```
 
@@ -103,29 +105,29 @@ initLifecycle 是初始化声明周期相关属性，这里面需要注意一下
 
 ```javascript
 export function initLifecycle(vm: Component) {
-	const options = vm.$options;
+    const options = vm.$options;
 
-	// locate first non-abstract parent
-	let parent = options.parent;
-	if (parent && !options.abstract) {
-		while (parent.$options.abstract && parent.$parent) {
-			parent = parent.$parent;
-		}
-		parent.$children.push(vm);
-	}
+    // locate first non-abstract parent
+    let parent = options.parent;
+    if (parent && !options.abstract) {
+        while (parent.$options.abstract && parent.$parent) {
+            parent = parent.$parent;
+        }
+        parent.$children.push(vm);
+    }
 
-	vm.$parent = parent;
-	vm.$root = parent ? parent.$root : vm;
+    vm.$parent = parent;
+    vm.$root = parent ? parent.$root : vm;
 
-	vm.$children = [];
-	vm.$refs = {};
+    vm.$children = [];
+    vm.$refs = {};
 
-	vm._watcher = null;
-	vm._inactive = null;
-	vm._directInactive = false;
-	vm._isMounted = false;
-	vm._isDestroyed = false;
-	vm._isBeingDestroyed = false;
+    vm._watcher = null;
+    vm._inactive = null;
+    vm._directInactive = false;
+    vm._isMounted = false;
+    vm._isDestroyed = false;
+    vm._isBeingDestroyed = false;
 }
 ```
 
@@ -134,13 +136,13 @@ initEvents 做的事情，实际上就是将事件挂在到组件上，这里面
 
 ```javascript
 export function initEvents(vm: Component) {
-	vm._events = Object.create(null);
-	vm._hasHookEvent = false;
-	// init parent attached events
-	const listeners = vm.$options._parentListeners;
-	if (listeners) {
-		updateComponentListeners(vm, listeners);
-	}
+    vm._events = Object.create(null);
+    vm._hasHookEvent = false;
+    // init parent attached events
+    const listeners = vm.$options._parentListeners;
+    if (listeners) {
+        updateComponentListeners(vm, listeners);
+    }
 }
 ```
 
@@ -150,62 +152,63 @@ initRender 主要是进行插槽处理，然后在实例上挂载创建元素的
 
 ```javascript
 export function initRender(vm: Component) {
-	vm._vnode = null; // the root of the child tree
-	vm._staticTrees = null; // v-once cached trees
-	const options = vm.$options;
-	const parentVnode = (vm.$vnode = options._parentVnode); // the placeholder node in parent tree
-	const renderContext = parentVnode && parentVnode.context;
-	vm.$slots = resolveSlots(options._renderChildren, renderContext);
-	vm.$scopedSlots = emptyObject;
-	// bind the createElement fn to this instance
-	// so that we get proper render context inside it.
-	// args order: tag, data, children, normalizationType, alwaysNormalize
-	// internal version is used by render functions compiled from templates
-	vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false);
-	// normalization is always applied for the public version, used in
-	// user-written render functions.
-	vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true);
+    vm._vnode = null; // the root of the child tree
+    vm._staticTrees = null; // v-once cached trees
+    const options = vm.$options;
+    const parentVnode = (vm.$vnode = options._parentVnode); // the placeholder node in parent tree
+    const renderContext = parentVnode && parentVnode.context;
+    vm.$slots = resolveSlots(options._renderChildren, renderContext);
+    vm.$scopedSlots = emptyObject;
+    // bind the createElement fn to this instance
+    // so that we get proper render context inside it.
+    // args order: tag, data, children, normalizationType, alwaysNormalize
+    // internal version is used by render functions compiled from templates
+    vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false);
+    // normalization is always applied for the public version, used in
+    // user-written render functions.
+    vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true);
 
-	// $attrs & $listeners are exposed for easier HOC creation.
-	// they need to be reactive so that HOCs using them are always updated
-	const parentData = parentVnode && parentVnode.data;
+    // $attrs & $listeners are exposed for easier HOC creation.
+    // they need to be reactive so that HOCs using them are always updated
+    const parentData = parentVnode && parentVnode.data;
 
-	/* istanbul ignore else */
-	if (process.env.NODE_ENV !== "production") {
-		defineReactive(
-			vm,
-			"$attrs",
-			(parentData && parentData.attrs) || emptyObject,
-			() => {
-				!isUpdatingChildComponent && warn(`$attrs is readonly.`, vm);
-			},
-			true
-		);
-		defineReactive(
-			vm,
-			"$listeners",
-			options._parentListeners || emptyObject,
-			() => {
-				!isUpdatingChildComponent && warn(`$listeners is readonly.`, vm);
-			},
-			true
-		);
-	} else {
-		defineReactive(
-			vm,
-			"$attrs",
-			(parentData && parentData.attrs) || emptyObject,
-			null,
-			true
-		);
-		defineReactive(
-			vm,
-			"$listeners",
-			options._parentListeners || emptyObject,
-			null,
-			true
-		);
-	}
+    /* istanbul ignore else */
+    if (process.env.NODE_ENV !== "production") {
+        defineReactive(
+            vm,
+            "$attrs",
+            (parentData && parentData.attrs) || emptyObject,
+            () => {
+                !isUpdatingChildComponent && warn(`$attrs is readonly.`, vm);
+            },
+            true
+        );
+        defineReactive(
+            vm,
+            "$listeners",
+            options._parentListeners || emptyObject,
+            () => {
+                !isUpdatingChildComponent &&
+                    warn(`$listeners is readonly.`, vm);
+            },
+            true
+        );
+    } else {
+        defineReactive(
+            vm,
+            "$attrs",
+            (parentData && parentData.attrs) || emptyObject,
+            null,
+            true
+        );
+        defineReactive(
+            vm,
+            "$listeners",
+            options._parentListeners || emptyObject,
+            null,
+            true
+        );
+    }
 }
 ```
 
@@ -214,19 +217,19 @@ export function initRender(vm: Component) {
 
 ```javascript
 export function callHook(vm: Component, hook: string) {
-	// #7573 disable dep collection when invoking lifecycle hooks
-	pushTarget();
-	const handlers = vm.$options[hook];
-	const info = `${hook} hook`;
-	if (handlers) {
-		for (let i = 0, j = handlers.length; i < j; i++) {
-			invokeWithErrorHandling(handlers[i], vm, null, vm, info);
-		}
-	}
-	if (vm._hasHookEvent) {
-		vm.$emit("hook:" + hook);
-	}
-	popTarget();
+    // #7573 disable dep collection when invoking lifecycle hooks
+    pushTarget();
+    const handlers = vm.$options[hook];
+    const info = `${hook} hook`;
+    if (handlers) {
+        for (let i = 0, j = handlers.length; i < j; i++) {
+            invokeWithErrorHandling(handlers[i], vm, null, vm, info);
+        }
+    }
+    if (vm._hasHookEvent) {
+        vm.$emit("hook:" + hook);
+    }
+    popTarget();
 }
 ```
 
@@ -235,61 +238,61 @@ export function callHook(vm: Component, hook: string) {
 
 ```javascript
 export function initInjections(vm: Component) {
-	const result = resolveInject(vm.$options.inject, vm);
-	if (result) {
-		toggleObserving(false);
-		Object.keys(result).forEach((key) => {
-			/* istanbul ignore else */
-			if (process.env.NODE_ENV !== "production") {
-				defineReactive(vm, key, result[key], () => {
-					warn(
-						`Avoid mutating an injected value directly since the changes will be ` +
-							`overwritten whenever the provided component re-renders. ` +
-							`injection being mutated: "${key}"`,
-						vm
-					);
-				});
-			} else {
-				defineReactive(vm, key, result[key]);
-			}
-		});
-		toggleObserving(true);
-	}
+    const result = resolveInject(vm.$options.inject, vm);
+    if (result) {
+        toggleObserving(false);
+        Object.keys(result).forEach((key) => {
+            /* istanbul ignore else */
+            if (process.env.NODE_ENV !== "production") {
+                defineReactive(vm, key, result[key], () => {
+                    warn(
+                        `Avoid mutating an injected value directly since the changes will be ` +
+                            `overwritten whenever the provided component re-renders. ` +
+                            `injection being mutated: "${key}"`,
+                        vm
+                    );
+                });
+            } else {
+                defineReactive(vm, key, result[key]);
+            }
+        });
+        toggleObserving(true);
+    }
 }
 
 export function resolveInject(inject: any, vm: Component): ?Object {
-	if (inject) {
-		// inject is :any because flow is not smart enough to figure out cached
-		const result = Object.create(null);
-		const keys = hasSymbol ? Reflect.ownKeys(inject) : Object.keys(inject);
+    if (inject) {
+        // inject is :any because flow is not smart enough to figure out cached
+        const result = Object.create(null);
+        const keys = hasSymbol ? Reflect.ownKeys(inject) : Object.keys(inject);
 
-		for (let i = 0; i < keys.length; i++) {
-			const key = keys[i];
-			// #6574 in case the inject object is observed...
-			if (key === "__ob__") continue;
-			const provideKey = inject[key].from;
-			let source = vm;
-			while (source) {
-				if (source._provided && hasOwn(source._provided, provideKey)) {
-					result[key] = source._provided[provideKey];
-					break;
-				}
-				source = source.$parent;
-			}
-			if (!source) {
-				if ("default" in inject[key]) {
-					const provideDefault = inject[key].default;
-					result[key] =
-						typeof provideDefault === "function"
-							? provideDefault.call(vm)
-							: provideDefault;
-				} else if (process.env.NODE_ENV !== "production") {
-					warn(`Injection "${key}" not found`, vm);
-				}
-			}
-		}
-		return result;
-	}
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            // #6574 in case the inject object is observed...
+            if (key === "__ob__") continue;
+            const provideKey = inject[key].from;
+            let source = vm;
+            while (source) {
+                if (source._provided && hasOwn(source._provided, provideKey)) {
+                    result[key] = source._provided[provideKey];
+                    break;
+                }
+                source = source.$parent;
+            }
+            if (!source) {
+                if ("default" in inject[key]) {
+                    const provideDefault = inject[key].default;
+                    result[key] =
+                        typeof provideDefault === "function"
+                            ? provideDefault.call(vm)
+                            : provideDefault;
+                } else if (process.env.NODE_ENV !== "production") {
+                    warn(`Injection "${key}" not found`, vm);
+                }
+            }
+        }
+        return result;
+    }
 }
 ```
 
@@ -298,234 +301,238 @@ initState 初始化 state 内容的时候，完全是按照 props > methods > da
 
 ```javascript
 export function initState(vm: Component) {
-	vm._watchers = [];
-	const opts = vm.$options;
-	// initState 初始化state内容的时候，完全是按照props > methods > data
-	if (opts.props) initProps(vm, opts.props);
-	if (opts.methods) initMethods(vm, opts.methods);
-	if (opts.data) {
-		initData(vm);
-	} else {
-		observe((vm._data = {}), true /* asRootData */);
-	}
-	if (opts.computed) initComputed(vm, opts.computed);
-	if (opts.watch && opts.watch !== nativeWatch) {
-		initWatch(vm, opts.watch);
-	}
+    vm._watchers = [];
+    const opts = vm.$options;
+    // initState 初始化state内容的时候，完全是按照props > methods > data
+    if (opts.props) initProps(vm, opts.props);
+    if (opts.methods) initMethods(vm, opts.methods);
+    if (opts.data) {
+        initData(vm);
+    } else {
+        observe((vm._data = {}), true /* asRootData */);
+    }
+    if (opts.computed) initComputed(vm, opts.computed);
+    if (opts.watch && opts.watch !== nativeWatch) {
+        initWatch(vm, opts.watch);
+    }
 }
 ```
 
-- initProps 将 props 中的数据在当前实例做响应式处理，
+-   initProps 将 props 中的数据在当前实例做响应式处理，
 
 ```javascript
 function initProps(vm: Component, propsOptions: Object) {
-	const propsData = vm.$options.propsData || {};
-	const props = (vm._props = {});
-	// cache prop keys so that future props updates can iterate using Array
-	// instead of dynamic object key enumeration.
-	const keys = (vm.$options._propKeys = []);
-	const isRoot = !vm.$parent;
-	// root instance props should be converted
-	if (!isRoot) {
-		toggleObserving(false);
-	}
-	for (const key in propsOptions) {
-		keys.push(key);
-		const value = validateProp(key, propsOptions, propsData, vm);
-		/* istanbul ignore else */
-		if (process.env.NODE_ENV !== "production") {
-			const hyphenatedKey = hyphenate(key);
-			if (
-				isReservedAttribute(hyphenatedKey) ||
-				config.isReservedAttr(hyphenatedKey)
-			) {
-				warn(
-					`"${hyphenatedKey}" is a reserved attribute and cannot be used as component prop.`,
-					vm
-				);
-			}
-			defineReactive(props, key, value, () => {
-				if (!isRoot && !isUpdatingChildComponent) {
-					warn(
-						`Avoid mutating a prop directly since the value will be ` +
-							`overwritten whenever the parent component re-renders. ` +
-							`Instead, use a data or computed property based on the prop's ` +
-							`value. Prop being mutated: "${key}"`,
-						vm
-					);
-				}
-			});
-		} else {
-			defineReactive(props, key, value);
-		}
-		// static props are already proxied on the component's prototype
-		// during Vue.extend(). We only need to proxy props defined at
-		// instantiation here.
-		if (!(key in vm)) {
-			proxy(vm, `_props`, key);
-		}
-	}
-	toggleObserving(true);
+    const propsData = vm.$options.propsData || {};
+    const props = (vm._props = {});
+    // cache prop keys so that future props updates can iterate using Array
+    // instead of dynamic object key enumeration.
+    const keys = (vm.$options._propKeys = []);
+    const isRoot = !vm.$parent;
+    // root instance props should be converted
+    if (!isRoot) {
+        toggleObserving(false);
+    }
+    for (const key in propsOptions) {
+        keys.push(key);
+        const value = validateProp(key, propsOptions, propsData, vm);
+        /* istanbul ignore else */
+        if (process.env.NODE_ENV !== "production") {
+            const hyphenatedKey = hyphenate(key);
+            if (
+                isReservedAttribute(hyphenatedKey) ||
+                config.isReservedAttr(hyphenatedKey)
+            ) {
+                warn(
+                    `"${hyphenatedKey}" is a reserved attribute and cannot be used as component prop.`,
+                    vm
+                );
+            }
+            defineReactive(props, key, value, () => {
+                if (!isRoot && !isUpdatingChildComponent) {
+                    warn(
+                        `Avoid mutating a prop directly since the value will be ` +
+                            `overwritten whenever the parent component re-renders. ` +
+                            `Instead, use a data or computed property based on the prop's ` +
+                            `value. Prop being mutated: "${key}"`,
+                        vm
+                    );
+                }
+            });
+        } else {
+            defineReactive(props, key, value);
+        }
+        // static props are already proxied on the component's prototype
+        // during Vue.extend(). We only need to proxy props defined at
+        // instantiation here.
+        if (!(key in vm)) {
+            proxy(vm, `_props`, key);
+        }
+    }
+    toggleObserving(true);
 }
 ```
 
-- initMethods 将 methods 里的方法挂载在当前实例上，并且绑定当前实例的对象为当前实例(在非生产环境下会判断是否会和 props 里的字段重名)
+-   initMethods 将 methods 里的方法挂载在当前实例上，并且绑定当前实例的对象为当前实例(在非生产环境下会判断是否会和 props 里的字段重名)
 
 ```javascript
 function initMethods(vm: Component, methods: Object) {
-	const props = vm.$options.props;
-	for (const key in methods) {
-		if (process.env.NODE_ENV !== "production") {
-			if (typeof methods[key] !== "function") {
-				warn(
-					`Method "${key}" has type "${typeof methods[
-						key
-					]}" in the component definition. ` +
-						`Did you reference the function correctly?`,
-					vm
-				);
-			}
-			if (props && hasOwn(props, key)) {
-				warn(`Method "${key}" has already been defined as a prop.`, vm);
-			}
-			if (key in vm && isReserved(key)) {
-				warn(
-					`Method "${key}" conflicts with an existing Vue instance method. ` +
-						`Avoid defining component methods that start with _ or $.`
-				);
-			}
-		}
-		vm[key] =
-			typeof methods[key] !== "function" ? noop : bind(methods[key], vm);
-	}
+    const props = vm.$options.props;
+    for (const key in methods) {
+        if (process.env.NODE_ENV !== "production") {
+            if (typeof methods[key] !== "function") {
+                warn(
+                    `Method "${key}" has type "${typeof methods[
+                        key
+                    ]}" in the component definition. ` +
+                        `Did you reference the function correctly?`,
+                    vm
+                );
+            }
+            if (props && hasOwn(props, key)) {
+                warn(`Method "${key}" has already been defined as a prop.`, vm);
+            }
+            if (key in vm && isReserved(key)) {
+                warn(
+                    `Method "${key}" conflicts with an existing Vue instance method. ` +
+                        `Avoid defining component methods that start with _ or $.`
+                );
+            }
+        }
+        vm[key] =
+            typeof methods[key] !== "function" ? noop : bind(methods[key], vm);
+    }
 }
 ```
 
-- initData 将 data 中的所有数据的 key 取出，然后做一次遍历，如果和 methods 中方法重名的，给出提示，然后遍历 data 进行响应式处理（这里会调用 observe 方法，observe 方法在 vue\src\core\observer\index.js 文件中，具体的内容后续再看，先看整体流程）
+-   initData 将 data 中的所有数据的 key 取出，然后做一次遍历，如果和 methods 中方法重名的，给出提示，然后遍历 data 进行响应式处理（这里会调用 observe 方法，observe 方法在 vue\src\core\observer\index.js 文件中，具体的内容后续再看，先看整体流程）
 
 ```javascript
 function initData(vm: Component) {
-	let data = vm.$options.data;
-	data = vm._data = typeof data === "function" ? getData(data, vm) : data || {};
-	if (!isPlainObject(data)) {
-		data = {};
-		process.env.NODE_ENV !== "production" &&
-			warn(
-				"data functions should return an object:\n" +
-					"https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function",
-				vm
-			);
-	}
-	// proxy data on instance
-	// 将data中的所有数据的key取出
-	const keys = Object.keys(data);
-	const props = vm.$options.props;
-	const methods = vm.$options.methods;
-	let i = keys.length;
-	while (i--) {
-		// 这里是对参数做一个判断，是否在methods和props中存在
-		const key = keys[i];
-		if (process.env.NODE_ENV !== "production") {
-			if (methods && hasOwn(methods, key)) {
-				warn(
-					`Method "${key}" has already been defined as a data property.`,
-					vm
-				);
-			}
-		}
-		if (props && hasOwn(props, key)) {
-			process.env.NODE_ENV !== "production" &&
-				warn(
-					`The data property "${key}" is already declared as a prop. ` +
-						`Use prop default value instead.`,
-					vm
-				);
-		} else if (!isReserved(key)) {
-			// 这里是对参数进行一个判断，只有非$和_开头的字段才会被做响应式处理，但这里是挂在在_data下面的
-			proxy(vm, `_data`, key);
-		}
-	}
-	// observe data
-	// 遍历响应式处理
-	observe(data, true /* asRootData */);
+    let data = vm.$options.data;
+    data = vm._data =
+        typeof data === "function" ? getData(data, vm) : data || {};
+    if (!isPlainObject(data)) {
+        data = {};
+        process.env.NODE_ENV !== "production" &&
+            warn(
+                "data functions should return an object:\n" +
+                    "https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function",
+                vm
+            );
+    }
+    // proxy data on instance
+    // 将data中的所有数据的key取出
+    const keys = Object.keys(data);
+    const props = vm.$options.props;
+    const methods = vm.$options.methods;
+    let i = keys.length;
+    while (i--) {
+        // 这里是对参数做一个判断，是否在methods和props中存在
+        const key = keys[i];
+        if (process.env.NODE_ENV !== "production") {
+            if (methods && hasOwn(methods, key)) {
+                warn(
+                    `Method "${key}" has already been defined as a data property.`,
+                    vm
+                );
+            }
+        }
+        if (props && hasOwn(props, key)) {
+            process.env.NODE_ENV !== "production" &&
+                warn(
+                    `The data property "${key}" is already declared as a prop. ` +
+                        `Use prop default value instead.`,
+                    vm
+                );
+        } else if (!isReserved(key)) {
+            // 这里是对参数进行一个判断，只有非$和_开头的字段才会被做响应式处理，但这里是挂在在_data下面的
+            proxy(vm, `_data`, key);
+        }
+    }
+    // observe data
+    // 遍历响应式处理
+    observe(data, true /* asRootData */);
 }
 ```
 
-- initComputed 将计算属性挂载到当前实例，如果不是在 SSR 场景下，就给改计算属性建立对应的 Watcher 实例，并把该 watcher 挂载到当前实例（也是由于计算属性和 watch 方法的原因，导致了 watcher 和组件之间存在多对多的情况），如果当前实例上不存在该计算属性，就做计算属性的响应式处理
+-   initComputed 将计算属性挂载到当前实例，如果不是在 SSR 场景下，就给改计算属性建立对应的 Watcher 实例，并把该 watcher 挂载到当前实例（也是由于计算属性和 watch 方法的原因，导致了 watcher 和组件之间存在多对多的情况），如果当前实例上不存在该计算属性，就做计算属性的响应式处理
 
 ```javascript
 function initComputed(vm: Component, computed: Object) {
-	// $flow-disable-line
-	const watchers = (vm._computedWatchers = Object.create(null));
-	// computed properties are just getters during SSR
-	const isSSR = isServerRendering();
+    // $flow-disable-line
+    const watchers = (vm._computedWatchers = Object.create(null));
+    // computed properties are just getters during SSR
+    const isSSR = isServerRendering();
 
-	for (const key in computed) {
-		const userDef = computed[key];
-		const getter = typeof userDef === "function" ? userDef : userDef.get;
-		if (process.env.NODE_ENV !== "production" && getter == null) {
-			warn(`Getter is missing for computed property "${key}".`, vm);
-		}
+    for (const key in computed) {
+        const userDef = computed[key];
+        const getter = typeof userDef === "function" ? userDef : userDef.get;
+        if (process.env.NODE_ENV !== "production" && getter == null) {
+            warn(`Getter is missing for computed property "${key}".`, vm);
+        }
 
-		if (!isSSR) {
-			// create internal watcher for the computed property.
-			watchers[key] = new Watcher(
-				vm,
-				getter || noop,
-				noop,
-				computedWatcherOptions
-			);
-		}
+        if (!isSSR) {
+            // create internal watcher for the computed property.
+            watchers[key] = new Watcher(
+                vm,
+                getter || noop,
+                noop,
+                computedWatcherOptions
+            );
+        }
 
-		// component-defined computed properties are already defined on the
-		// component prototype. We only need to define computed properties defined
-		// at instantiation here.
-		if (!(key in vm)) {
-			defineComputed(vm, key, userDef);
-		} else if (process.env.NODE_ENV !== "production") {
-			if (key in vm.$data) {
-				warn(`The computed property "${key}" is already defined in data.`, vm);
-			} else if (vm.$options.props && key in vm.$options.props) {
-				warn(
-					`The computed property "${key}" is already defined as a prop.`,
-					vm
-				);
-			}
-		}
-	}
+        // component-defined computed properties are already defined on the
+        // component prototype. We only need to define computed properties defined
+        // at instantiation here.
+        if (!(key in vm)) {
+            defineComputed(vm, key, userDef);
+        } else if (process.env.NODE_ENV !== "production") {
+            if (key in vm.$data) {
+                warn(
+                    `The computed property "${key}" is already defined in data.`,
+                    vm
+                );
+            } else if (vm.$options.props && key in vm.$options.props) {
+                warn(
+                    `The computed property "${key}" is already defined as a prop.`,
+                    vm
+                );
+            }
+        }
+    }
 }
 ```
 
-- initWatch 初始化监听，如果存在则创建一个 watcher，具体的原理和实现后续细看
+-   initWatch 初始化监听，如果存在则创建一个 watcher，具体的原理和实现后续细看
 
 ```javascript
 function initWatch(vm: Component, watch: Object) {
-	for (const key in watch) {
-		const handler = watch[key];
-		if (Array.isArray(handler)) {
-			for (let i = 0; i < handler.length; i++) {
-				createWatcher(vm, key, handler[i]);
-			}
-		} else {
-			createWatcher(vm, key, handler);
-		}
-	}
+    for (const key in watch) {
+        const handler = watch[key];
+        if (Array.isArray(handler)) {
+            for (let i = 0; i < handler.length; i++) {
+                createWatcher(vm, key, handler[i]);
+            }
+        } else {
+            createWatcher(vm, key, handler);
+        }
+    }
 }
 
 function createWatcher(
-	vm: Component,
-	expOrFn: string | Function,
-	handler: any,
-	options?: Object
+    vm: Component,
+    expOrFn: string | Function,
+    handler: any,
+    options?: Object
 ) {
-	if (isPlainObject(handler)) {
-		options = handler;
-		handler = handler.handler;
-	}
-	if (typeof handler === "string") {
-		handler = vm[handler];
-	}
-	return vm.$watch(expOrFn, handler, options);
+    if (isPlainObject(handler)) {
+        options = handler;
+        handler = handler.handler;
+    }
+    if (typeof handler === "string") {
+        handler = vm[handler];
+    }
+    return vm.$watch(expOrFn, handler, options);
 }
 ```
 
@@ -535,10 +542,11 @@ initProvide 只是将 provide 的内容，挂载到当前实例上（\_provided 
 
 ```javascript
 export function initProvide(vm: Component) {
-	const provide = vm.$options.provide;
-	if (provide) {
-		vm._provided = typeof provide === "function" ? provide.call(vm) : provide;
-	}
+    const provide = vm.$options.provide;
+    if (provide) {
+        vm._provided =
+            typeof provide === "function" ? provide.call(vm) : provide;
+    }
 }
 ```
 
@@ -555,62 +563,62 @@ export function initProvide(vm: Component) {
 
 ```javascript
 export function stateMixin(Vue: Class<Component>) {
-	// flow somehow has problems with directly declared definition object
-	// when using Object.defineProperty, so we have to procedurally build up
-	// the object here.
-	const dataDef = {};
-	dataDef.get = function () {
-		return this._data;
-	};
-	const propsDef = {};
-	propsDef.get = function () {
-		return this._props;
-	};
-	if (process.env.NODE_ENV !== "production") {
-		dataDef.set = function () {
-			warn(
-				"Avoid replacing instance root $data. " +
-					"Use nested data properties instead.",
-				this
-			);
-		};
-		propsDef.set = function () {
-			warn(`$props is readonly.`, this);
-		};
-	}
-	Object.defineProperty(Vue.prototype, "$data", dataDef);
-	Object.defineProperty(Vue.prototype, "$props", propsDef);
+    // flow somehow has problems with directly declared definition object
+    // when using Object.defineProperty, so we have to procedurally build up
+    // the object here.
+    const dataDef = {};
+    dataDef.get = function () {
+        return this._data;
+    };
+    const propsDef = {};
+    propsDef.get = function () {
+        return this._props;
+    };
+    if (process.env.NODE_ENV !== "production") {
+        dataDef.set = function () {
+            warn(
+                "Avoid replacing instance root $data. " +
+                    "Use nested data properties instead.",
+                this
+            );
+        };
+        propsDef.set = function () {
+            warn(`$props is readonly.`, this);
+        };
+    }
+    Object.defineProperty(Vue.prototype, "$data", dataDef);
+    Object.defineProperty(Vue.prototype, "$props", propsDef);
 
-	Vue.prototype.$set = set;
-	Vue.prototype.$delete = del;
+    Vue.prototype.$set = set;
+    Vue.prototype.$delete = del;
 
-	Vue.prototype.$watch = function (
-		expOrFn: string | Function,
-		cb: any,
-		options?: Object
-	): Function {
-		const vm: Component = this;
-		if (isPlainObject(cb)) {
-			return createWatcher(vm, expOrFn, cb, options);
-		}
-		options = options || {};
-		options.user = true;
-		const watcher = new Watcher(vm, expOrFn, cb, options);
-		if (options.immediate) {
-			try {
-				cb.call(vm, watcher.value);
-			} catch (error) {
-				handleError(
-					error,
-					vm,
-					`callback for immediate watcher "${watcher.expression}"`
-				);
-			}
-		}
-		return function unwatchFn() {
-			watcher.teardown();
-		};
-	};
+    Vue.prototype.$watch = function (
+        expOrFn: string | Function,
+        cb: any,
+        options?: Object
+    ): Function {
+        const vm: Component = this;
+        if (isPlainObject(cb)) {
+            return createWatcher(vm, expOrFn, cb, options);
+        }
+        options = options || {};
+        options.user = true;
+        const watcher = new Watcher(vm, expOrFn, cb, options);
+        if (options.immediate) {
+            try {
+                cb.call(vm, watcher.value);
+            } catch (error) {
+                handleError(
+                    error,
+                    vm,
+                    `callback for immediate watcher "${watcher.expression}"`
+                );
+            }
+        }
+        return function unwatchFn() {
+            watcher.teardown();
+        };
+    };
 }
 ```
 
@@ -643,125 +651,127 @@ export function eventsMixin (Vue: Class<Component>) {
 
 具体的函数方法如下：
 
-- $on
+-   $on
 
 监听当前实例上的自定义事件。事件可以由 vm.$emit 触发。回调函数会接收所有传入事件触发函数的额外参数。$on 函数，只是将对应监听的事件存放在实例的\_events 上面，供后续$emit 使用
 
 ```javascript
 Vue.prototype.$on = function (
-	event: string | Array<string>,
-	fn: Function
+    event: string | Array<string>,
+    fn: Function
 ): Component {
-	const vm: Component = this;
-	if (Array.isArray(event)) {
-		for (let i = 0, l = event.length; i < l; i++) {
-			vm.$on(event[i], fn);
-		}
-	} else {
-		(vm._events[event] || (vm._events[event] = [])).push(fn);
-		// optimize hook:event cost by using a boolean flag marked at registration
-		// instead of a hash lookup
-		if (hookRE.test(event)) {
-			vm._hasHookEvent = true;
-		}
-	}
-	return vm;
+    const vm: Component = this;
+    if (Array.isArray(event)) {
+        for (let i = 0, l = event.length; i < l; i++) {
+            vm.$on(event[i], fn);
+        }
+    } else {
+        (vm._events[event] || (vm._events[event] = [])).push(fn);
+        // optimize hook:event cost by using a boolean flag marked at registration
+        // instead of a hash lookup
+        if (hookRE.test(event)) {
+            vm._hasHookEvent = true;
+        }
+    }
+    return vm;
 };
 ```
 
-- $off
+-   $off
 
 移除自定义事件监听器。如果没有提供参数，则移除所有的事件监听器；如果只提供了事件，则移除该事件所有的监听器；如果同时提供了事件与回调，则只移除这个回调的监听器。这里就是一个简短的逻辑处理。
 
 ```javascript
 Vue.prototype.$off = function (
-	event?: string | Array<string>,
-	fn?: Function
+    event?: string | Array<string>,
+    fn?: Function
 ): Component {
-	const vm: Component = this;
-	// all
-	if (!arguments.length) {
-		vm._events = Object.create(null);
-		return vm;
-	}
-	// array of events
-	if (Array.isArray(event)) {
-		for (let i = 0, l = event.length; i < l; i++) {
-			vm.$off(event[i], fn);
-		}
-		return vm;
-	}
-	// specific event
-	const cbs = vm._events[event];
-	if (!cbs) {
-		return vm;
-	}
-	if (!fn) {
-		vm._events[event] = null;
-		return vm;
-	}
-	// specific handler
-	let cb;
-	let i = cbs.length;
-	while (i--) {
-		cb = cbs[i];
-		if (cb === fn || cb.fn === fn) {
-			cbs.splice(i, 1);
-			break;
-		}
-	}
-	return vm;
+    const vm: Component = this;
+    // all
+    if (!arguments.length) {
+        vm._events = Object.create(null);
+        return vm;
+    }
+    // array of events
+    if (Array.isArray(event)) {
+        for (let i = 0, l = event.length; i < l; i++) {
+            vm.$off(event[i], fn);
+        }
+        return vm;
+    }
+    // specific event
+    const cbs = vm._events[event];
+    if (!cbs) {
+        return vm;
+    }
+    if (!fn) {
+        vm._events[event] = null;
+        return vm;
+    }
+    // specific handler
+    let cb;
+    let i = cbs.length;
+    while (i--) {
+        cb = cbs[i];
+        if (cb === fn || cb.fn === fn) {
+            cbs.splice(i, 1);
+            break;
+        }
+    }
+    return vm;
 };
 ```
 
-- $once
+-   $once
 
 监听一个自定义事件，但是只触发一次。一旦触发之后，监听器就会被移除。实际上是自己重新实现了一个回调方法，在$on触发执行回调后，再调用$off 方法注销掉对应的回调
 
 ```javascript
 Vue.prototype.$once = function (event: string, fn: Function): Component {
-	const vm: Component = this;
-	function on() {
-		vm.$off(event, on);
-		fn.apply(vm, arguments);
-	}
-	on.fn = fn;
-	vm.$on(event, on);
-	return vm;
+    const vm: Component = this;
+    function on() {
+        vm.$off(event, on);
+        fn.apply(vm, arguments);
+    }
+    on.fn = fn;
+    vm.$on(event, on);
+    return vm;
 };
 ```
 
-- $emit
+-   $emit
 
 触发当前实例上的事件。附加参数都会传给监听器回调。会在实例的\_events 对象上找，是否存在当前事件，如果存在则会循环调用当前事件注册的所有回调方法，并将参数传入
 
 ```javascript
 Vue.prototype.$emit = function (event: string): Component {
-	const vm: Component = this;
-	if (process.env.NODE_ENV !== "production") {
-		const lowerCaseEvent = event.toLowerCase();
-		if (lowerCaseEvent !== event && vm._events[lowerCaseEvent]) {
-			tip(
-				`Event "${lowerCaseEvent}" is emitted in component ` +
-					`${formatComponentName(
-						vm
-					)} but the handler is registered for "${event}". ` +
-					`Note that HTML attributes are case-insensitive and you cannot use ` +
-					`v-on to listen to camelCase events when using in-DOM templates. ` +
-					`You should probably use "${hyphenate(event)}" instead of "${event}".`
-			);
-		}
-	}
-	let cbs = vm._events[event];
-	if (cbs) {
-		cbs = cbs.length > 1 ? toArray(cbs) : cbs;
-		const args = toArray(arguments, 1);
-		const info = `event handler for "${event}"`;
-		for (let i = 0, l = cbs.length; i < l; i++) {
-			invokeWithErrorHandling(cbs[i], vm, args, vm, info);
-		}
-	}
-	return vm;
+    const vm: Component = this;
+    if (process.env.NODE_ENV !== "production") {
+        const lowerCaseEvent = event.toLowerCase();
+        if (lowerCaseEvent !== event && vm._events[lowerCaseEvent]) {
+            tip(
+                `Event "${lowerCaseEvent}" is emitted in component ` +
+                    `${formatComponentName(
+                        vm
+                    )} but the handler is registered for "${event}". ` +
+                    `Note that HTML attributes are case-insensitive and you cannot use ` +
+                    `v-on to listen to camelCase events when using in-DOM templates. ` +
+                    `You should probably use "${hyphenate(
+                        event
+                    )}" instead of "${event}".`
+            );
+        }
+    }
+    let cbs = vm._events[event];
+    if (cbs) {
+        cbs = cbs.length > 1 ? toArray(cbs) : cbs;
+        const args = toArray(arguments, 1);
+        const info = `event handler for "${event}"`;
+        for (let i = 0, l = cbs.length; i < l; i++) {
+            invokeWithErrorHandling(cbs[i], vm, args, vm, info);
+        }
+    }
+    return vm;
 };
 ```
 
@@ -771,105 +781,105 @@ Vue.prototype.$emit = function (event: string): Component {
 
 实例上挂载一些生命周期相关的方法，有\_update、$forceUpdate、$destroy，其中\_update 是不对外暴露的，是 Vue 内部调用的，\_update 是做 diff 算法执行的方法，这里主要调用了**patch**方法，这个方法在入口文件中执行的挂载。
 
-- \_update
+-   \_update
 
 虚拟 dom 进行 diff 算法和匹配，具体的 diff 算法，后续具体查看
 
 ```javascript
 Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
-	const vm: Component = this;
-	const prevEl = vm.$el;
-	// 上次计算的虚拟dom
-	const prevVnode = vm._vnode;
-	const restoreActiveInstance = setActiveInstance(vm);
-	vm._vnode = vnode;
-	// Vue.prototype.__patch__ is injected in entry points
-	// based on the rendering backend used.
-	// 初始化时没有prevVnode
-	if (!prevVnode) {
-		// initial render
-		vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */);
-	} else {
-		// updates
-		// diff
-		vm.$el = vm.__patch__(prevVnode, vnode);
-	}
-	restoreActiveInstance();
-	// update __vue__ reference
-	if (prevEl) {
-		prevEl.__vue__ = null;
-	}
-	if (vm.$el) {
-		vm.$el.__vue__ = vm;
-	}
-	// if parent is an HOC, update its $el as well
-	if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
-		vm.$parent.$el = vm.$el;
-	}
-	// updated hook is called by the scheduler to ensure that children are
-	// updated in a parent's updated hook.
+    const vm: Component = this;
+    const prevEl = vm.$el;
+    // 上次计算的虚拟dom
+    const prevVnode = vm._vnode;
+    const restoreActiveInstance = setActiveInstance(vm);
+    vm._vnode = vnode;
+    // Vue.prototype.__patch__ is injected in entry points
+    // based on the rendering backend used.
+    // 初始化时没有prevVnode
+    if (!prevVnode) {
+        // initial render
+        vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */);
+    } else {
+        // updates
+        // diff
+        vm.$el = vm.__patch__(prevVnode, vnode);
+    }
+    restoreActiveInstance();
+    // update __vue__ reference
+    if (prevEl) {
+        prevEl.__vue__ = null;
+    }
+    if (vm.$el) {
+        vm.$el.__vue__ = vm;
+    }
+    // if parent is an HOC, update its $el as well
+    if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
+        vm.$parent.$el = vm.$el;
+    }
+    // updated hook is called by the scheduler to ensure that children are
+    // updated in a parent's updated hook.
 };
 ```
 
-- $forceUpdate
+-   $forceUpdate
 
 迫使 Vue 实例重新渲染。注意它仅仅影响实例本身和插入插槽内容的子组件，而不是所有子组件。这里实际上是触发组件更新的 Watcher，这个 Watcher 是在 mountComponent 的时候注册的。所以这里理论上来说是不会触发计算属性、watch 的函数调用的（注意：这里所说的不会触发调用的前提是在执行$forceUpdate 前没有更改过和计算属性或者 watch 相关的 data 数据）。
 
 ```javascript
 Vue.prototype.$forceUpdate = function () {
-	const vm: Component = this;
-	if (vm._watcher) {
-		vm._watcher.update();
-	}
+    const vm: Component = this;
+    if (vm._watcher) {
+        vm._watcher.update();
+    }
 };
 ```
 
-- $destroy
+-   $destroy
 
 完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。触发 beforeDestroy 和 destroyed 的钩子。包括清理和当前实例相关的 Watcher 和绑定的所有事件，这里也会调用 diff，需要注意的是\_events 的注销是在 destroyed 这个生命周期之后进行的，清楚 Watcher 的方法是在 destroyed 生命周期之前 beforeDestroy 生命周期之后进行的。
 
 ```javascript
 Vue.prototype.$destroy = function () {
-	const vm: Component = this;
-	if (vm._isBeingDestroyed) {
-		return;
-	}
-	callHook(vm, "beforeDestroy");
-	vm._isBeingDestroyed = true;
-	// remove self from parent
-	const parent = vm.$parent;
-	if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
-		remove(parent.$children, vm);
-	}
-	// teardown watchers
-	if (vm._watcher) {
-		vm._watcher.teardown();
-	}
-	let i = vm._watchers.length;
-	while (i--) {
-		vm._watchers[i].teardown();
-	}
-	// remove reference from data ob
-	// frozen object may not have observer.
-	if (vm._data.__ob__) {
-		vm._data.__ob__.vmCount--;
-	}
-	// call the last hook...
-	vm._isDestroyed = true;
-	// invoke destroy hooks on current rendered tree
-	vm.__patch__(vm._vnode, null);
-	// fire destroyed hook
-	callHook(vm, "destroyed");
-	// turn off all instance listeners.
-	vm.$off();
-	// remove __vue__ reference
-	if (vm.$el) {
-		vm.$el.__vue__ = null;
-	}
-	// release circular reference (#6759)
-	if (vm.$vnode) {
-		vm.$vnode.parent = null;
-	}
+    const vm: Component = this;
+    if (vm._isBeingDestroyed) {
+        return;
+    }
+    callHook(vm, "beforeDestroy");
+    vm._isBeingDestroyed = true;
+    // remove self from parent
+    const parent = vm.$parent;
+    if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
+        remove(parent.$children, vm);
+    }
+    // teardown watchers
+    if (vm._watcher) {
+        vm._watcher.teardown();
+    }
+    let i = vm._watchers.length;
+    while (i--) {
+        vm._watchers[i].teardown();
+    }
+    // remove reference from data ob
+    // frozen object may not have observer.
+    if (vm._data.__ob__) {
+        vm._data.__ob__.vmCount--;
+    }
+    // call the last hook...
+    vm._isDestroyed = true;
+    // invoke destroy hooks on current rendered tree
+    vm.__patch__(vm._vnode, null);
+    // fire destroyed hook
+    callHook(vm, "destroyed");
+    // turn off all instance listeners.
+    vm.$off();
+    // remove __vue__ reference
+    if (vm.$el) {
+        vm.$el.__vue__ = null;
+    }
+    // release circular reference (#6759)
+    if (vm.$vnode) {
+        vm.$vnode.parent = null;
+    }
 };
 ```
 
@@ -888,89 +898,386 @@ installRenderHelpers(Vue.prototype);
 
 2. 注册\_render、$nextTick 方法
 
-- $nextTick
+-   $nextTick
 
 将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新。它跟全局方法 Vue.nextTick 一样，不同的是回调的 this 自动绑定到调用它的实例上。这里是将方法直接丢到了一个回调函数中，这是一个全局的回调方法的列表，如果没有传入对应的 cb 方法，那么将返回一个 Promise（具体的内容在看和渲染相关的时候再细看）
 
 ```javascript
 Vue.prototype.$nextTick = function (fn: Function) {
-	return nextTick(fn, this);
+    return nextTick(fn, this);
 };
 ```
 
-- \_render
+-   \_render
 
 \_render 方法的本质应该是生成虚拟 dom，
 
 ```javascript
 Vue.prototype._render = function (): VNode {
-	const vm: Component = this;
-	const { render, _parentVnode } = vm.$options;
+    const vm: Component = this;
+    const { render, _parentVnode } = vm.$options;
 
-	if (_parentVnode) {
-		vm.$scopedSlots = normalizeScopedSlots(
-			_parentVnode.data.scopedSlots,
-			vm.$slots,
-			vm.$scopedSlots
-		);
-	}
+    if (_parentVnode) {
+        vm.$scopedSlots = normalizeScopedSlots(
+            _parentVnode.data.scopedSlots,
+            vm.$slots,
+            vm.$scopedSlots
+        );
+    }
 
-	// set parent vnode. this allows render functions to have access
-	// to the data on the placeholder node.
-	vm.$vnode = _parentVnode;
-	// render self
-	let vnode;
-	try {
-		// There's no need to maintain a stack because all render fns are called
-		// separately from one another. Nested component's render fns are called
-		// when parent component is patched.
-		currentRenderingInstance = vm;
-		vnode = render.call(vm._renderProxy, vm.$createElement);
-	} catch (e) {
-		handleError(e, vm, `render`);
-		// return error render result,
-		// or previous vnode to prevent render error causing blank component
-		/* istanbul ignore else */
-		if (process.env.NODE_ENV !== "production" && vm.$options.renderError) {
-			try {
-				vnode = vm.$options.renderError.call(
-					vm._renderProxy,
-					vm.$createElement,
-					e
-				);
-			} catch (e) {
-				handleError(e, vm, `renderError`);
-				vnode = vm._vnode;
-			}
-		} else {
-			vnode = vm._vnode;
-		}
-	} finally {
-		currentRenderingInstance = null;
-	}
-	// if the returned array contains only a single node, allow it
-	if (Array.isArray(vnode) && vnode.length === 1) {
-		vnode = vnode[0];
-	}
-	// return empty vnode in case the render function errored out
-	if (!(vnode instanceof VNode)) {
-		if (process.env.NODE_ENV !== "production" && Array.isArray(vnode)) {
-			warn(
-				"Multiple root nodes returned from render function. Render function " +
-					"should return a single root node.",
-				vm
-			);
-		}
-		vnode = createEmptyVNode();
-	}
-	// set parent
-	vnode.parent = _parentVnode;
-	return vnode;
+    // set parent vnode. this allows render functions to have access
+    // to the data on the placeholder node.
+    vm.$vnode = _parentVnode;
+    // render self
+    let vnode;
+    try {
+        // There's no need to maintain a stack because all render fns are called
+        // separately from one another. Nested component's render fns are called
+        // when parent component is patched.
+        currentRenderingInstance = vm;
+        vnode = render.call(vm._renderProxy, vm.$createElement);
+    } catch (e) {
+        handleError(e, vm, `render`);
+        // return error render result,
+        // or previous vnode to prevent render error causing blank component
+        /* istanbul ignore else */
+        if (process.env.NODE_ENV !== "production" && vm.$options.renderError) {
+            try {
+                vnode = vm.$options.renderError.call(
+                    vm._renderProxy,
+                    vm.$createElement,
+                    e
+                );
+            } catch (e) {
+                handleError(e, vm, `renderError`);
+                vnode = vm._vnode;
+            }
+        } else {
+            vnode = vm._vnode;
+        }
+    } finally {
+        currentRenderingInstance = null;
+    }
+    // if the returned array contains only a single node, allow it
+    if (Array.isArray(vnode) && vnode.length === 1) {
+        vnode = vnode[0];
+    }
+    // return empty vnode in case the render function errored out
+    if (!(vnode instanceof VNode)) {
+        if (process.env.NODE_ENV !== "production" && Array.isArray(vnode)) {
+            warn(
+                "Multiple root nodes returned from render function. Render function " +
+                    "should return a single root node.",
+                vm
+            );
+        }
+        vnode = createEmptyVNode();
+    }
+    // set parent
+    vnode.parent = _parentVnode;
+    return vnode;
 };
 ```
 
 ### 二、数据响应式
 
-Vue2 中的响应式处理主要是在 initMixin（vue\src\core\instance\index.js） 方法的 initState（\vue\src\core\instance\state.js） 中的 initData（\vue\src\core\instance\state.js）方法里
+Vue2 中的响应式处理主要是在 initMixin（vue\src\core\instance\index.js） 方法的 initState（\vue\src\core\instance\state.js） 中的 initData（\vue\src\core\instance\state.js）方法里。如果 data 不存在的时候，Vue 会将一个空对象做响应式处理，这里处理的是 data 中的数据内容，它和 computed 和 watch 中的响应式不同，computed 和 watch 是单独建立了一个 watcher 的方式进行的，对于这两种情况而言，更多的是 get。
 
-Observe 的主要内容在 vue\src\core\observer\index.js 中，
+initData 中有一个点需要注意，在遍历循环的时候，会对 data 中的数据做一个判断，只有非$和\_开头的字段才会被做响应式处理，数据实际上是保存在当前实例的\_data 属性下的，所以在遍历响应式处理之间，已经对 data 中的数据做了响应式处理，具体代码如下
+
+```javascript
+// proxy data on instance
+// 将data中的所有数据的key取出
+const keys = Object.keys(data);
+const props = vm.$options.props;
+const methods = vm.$options.methods;
+let i = keys.length;
+while (i--) {
+    // 这里是对参数做一个判断，是否在methods和props中存在
+    const key = keys[i];
+    if (process.env.NODE_ENV !== "production") {
+        if (methods && hasOwn(methods, key)) {
+            warn(
+                `Method "${key}" has already been defined as a data property.`,
+                vm
+            );
+        }
+    }
+    if (props && hasOwn(props, key)) {
+        process.env.NODE_ENV !== "production" &&
+            warn(
+                `The data property "${key}" is already declared as a prop. ` +
+                    `Use prop default value instead.`,
+                vm
+            );
+    } else if (!isReserved(key)) {
+        // 这里是对参数进行一个判断，只有非$和_开头的字段才会被做响应式处理，但这里是挂在在_data下面的
+        proxy(vm, `_data`, key);
+    }
+}
+```
+
+Observe 的主要内容在 vue\src\core\observer\index.js 中，这里对数据类型做了要求，只有对象并且不是虚拟 dom 类型的数据才会做响应式处理。这里需要注意的点是，在实例化 Vue 的时候，前面已经对 data 做过了类型要就，即 data 必须返回的是一个对象，所以此时 observer 肯定会执行一次。同时源码中对于已经做过响应式处理的数据，直接使用其响应式实例，避免重复创建
+
+```javascript
+/**
+ * Attempt to create an observer instance for a value,
+ * returns the new observer if successfully observed,
+ * or the existing observer if the value already has one.
+ */
+export function observe(value: any, asRootData: ?boolean): Observer | void {
+    if (!isObject(value) || value instanceof VNode) {
+        return;
+    }
+    // Observer作用？
+    // 1.将传入value做响应式处理
+    let ob: Observer | void;
+    // 如果已经做过响应式处理，则直接返回ob
+    if (hasOwn(value, "__ob__") && value.__ob__ instanceof Observer) {
+        ob = value.__ob__;
+    } else if (
+        shouldObserve &&
+        !isServerRendering() &&
+        (Array.isArray(value) || isPlainObject(value)) &&
+        Object.isExtensible(value) &&
+        !value._isVue
+    ) {
+        // 初始化传入需要响应式的对象
+        ob = new Observer(value);
+    }
+    // vmCount判断是否是根$data实例
+    if (asRootData && ob) {
+        ob.vmCount++;
+    }
+    return ob;
+}
+```
+
+创建 Observer 实例的时候，实例本身也会创建依赖实例，并挂载到 Observer 实例上，这样子是为了后续数据发生变动的时候，可以触发依赖调用，无论是对象还是数组，这个实例上都要注册一个**ob**的属性，并且指向当前的 Observer，这样后续在添加属性的时候，可以直接使用当前实例，在当前实例上进行响应式处理，而避免再次重新创建整个实例，减小性能消耗。对于非数组的数据，直接触发 walk，即直接进行响应式处理。对于数组来说，则需要通过遍历的形式处理数组中的每一个数据，这样是为了保证如果数组中存在对象的时候，也能进行响应式处理。
+
+```javascript
+export class Observer {
+    value: any;
+    dep: Dep;
+    vmCount: number; // number of vms that have this object as root $data
+
+    constructor(value: any) {
+        // 2.此处dep目的？
+        // 如果使用Vue.set/delete添加或删除属性，负责通知更新
+        this.value = value;
+        // 对象本身也会先创建一个dependence，这是为了监控往对象里设置属性时，出发依赖调用
+        this.dep = new Dep();
+        this.vmCount = 0;
+        // defineProperty注册__ob__这个属性
+        def(value, "__ob__", this);
+        // 1.分辨传入对象类型,因为前面判断了一开始的时候必须是对象，所以非数组就执行了walk方法
+        if (Array.isArray(value)) {
+            // 现代浏览器，覆盖原型，实际上就是如果不支持Object.defineProperty就直接覆盖其方法
+            if (hasProto) {
+                protoAugment(value, arrayMethods);
+            } else {
+                copyAugment(value, arrayMethods, arrayKeys);
+            }
+            // 递归遍历数组的所有值
+            this.observeArray(value);
+        } else {
+            // 非数值直接处理
+            this.walk(value);
+        }
+    }
+
+    /**
+     * Walk through all properties and convert them into
+     * getter/setters. This method should only be called when
+     * value type is Object.
+     */
+    walk(obj: Object) {
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            defineReactive(obj, keys[i]);
+        }
+    }
+
+    /**
+     * Observe a list of Array items.
+     */
+    observeArray(items: Array<any>) {
+        for (let i = 0, l = items.length; i < l; i++) {
+            observe(items[i]);
+        }
+    }
+}
+```
+
+其次这里做数据响应式的时候，需要考虑的一个问题是，针对数组的处理，因为在日常的使用中，我们会通过 push、pop、unshift 等方法给数组增加或删除其中的一个或多个数据，但是 Object.defineProperty 并不会对数组的这些操作进行监听，所以需要对数组的方法进行复写，但是需要注意，在 ie 浏览器中，由于不支持 Object.defineProperty，所以就直接进行覆盖。但实际上我感觉这里有点问题，因为 arrayMethods 这个对象本身在实现的时候，就是通过 Object.defineProperty 挂载的，所以感觉这里判断不判断好像影响不是很大。
+
+```javascript
+if (Array.isArray(value)) {
+    // 现代浏览器，覆盖原型，实际上就是如果不支持Object.defineProperty就直接覆盖其方法
+    if (hasProto) {
+        protoAugment(value, arrayMethods);
+    } else {
+        copyAugment(value, arrayMethods, arrayKeys);
+    }
+    // 递归遍历数组的所有值
+    this.observeArray(value);
+}
+```
+
+```javascript
+// protoAugment
+function protoAugment(target, src: Object) {
+    /* eslint-disable no-proto */
+    // 覆盖当前数组实例的原型
+    // 他只会影响当前数组实例本身
+    target.__proto__ = src;
+    /* eslint-enable no-proto */
+}
+```
+
+```javascript
+function copyAugment(target: Object, src: Object, keys: Array<string>) {
+    for (let i = 0, l = keys.length; i < l; i++) {
+        const key = keys[i];
+        def(target, key, src[key]);
+    }
+}
+```
+
+这里处理 array 的方法的文件是 vue\src\core\observer\array.js，首先将 Array 原型克隆一份，实际上数组涉及到的处理方法主要有：push、pop、shift、unshift、splice、sort、reverse 这 7 个方法，复写这些方法的时候，都是通过 Object.defineProperty 响应式处理的，首先要执行原有行为，然后获取**ob**实例，涉及到对原有数组增加数据的场景，只有三个方法，分别是 push、unshift、和 splice，其他的操作，只会删除原有的字段，所以不需要重新执行响应式，这三中方法中，push 和 unshift 方法的入参都是具体的数据，所以处理方式一样，但是对于 splice 方法，第三个入参才是具体需要执行响应式处理的数据，所以需要 slice(2)做一次截取操作，对新增的数据处理完成后，再通知内部的依赖更新。
+
+```javascript
+import { def } from "../util/index";
+// 1.获取数组原型
+const arrayProto = Array.prototype;
+// 2.克隆一份
+export const arrayMethods = Object.create(arrayProto);
+
+const methodsToPatch = [
+    "push",
+    "pop",
+    "shift",
+    "unshift",
+    "splice",
+    "sort",
+    "reverse",
+];
+
+/**
+ * Intercept mutating methods and emit events
+ */
+methodsToPatch.forEach(function (method) {
+    // cache original method
+    // 原始方法
+    const original = arrayProto[method];
+    def(arrayMethods, method, function mutator(...args) {
+        // 执行原始行为
+        const result = original.apply(this, args);
+
+        // 变更通知
+        // 1.获取ob实例
+        const ob = this.__ob__;
+        // 如果是新增元素的操作：比如push，unshift或者增加元素的splice操作
+        let inserted;
+        switch (method) {
+            case "push":
+            case "unshift":
+                inserted = args;
+                break;
+            case "splice":
+                inserted = args.slice(2);
+                break;
+        }
+        // 新加入的对象仍然需要响应式处理
+        if (inserted) ob.observeArray(inserted);
+        // notify change
+        // 让内部的dep通知更新
+        ob.dep.notify();
+        return result;
+    });
+});
+```
+
+实际执行响应式操作的是 defineReactive 函数，这个函数会为每一个做响应式处理的数据都生成一个 Dep 实例，首先在做响应式处理的时候，会调用 Object.getOwnPropertyDescriptor 方法来判断这个数据是否是可以修改的，由于可能存在数据的值本身是一个对象或者是一个数组的情况，所以会递归调用 observe，由 observe 判断是否需要处理，这里有一个点比较难理解的是，get 中有一个 Dep.target 的逻辑，如果 Dep.target 存在，那么说明此次调用的是一个 Watcher 实例，这个时候，需要将这个实例绑定到这个响应式数据上，因为只有这样，后续这个数据发生变化的时候，才能够触发对应的依赖，dep.depend()这个方法，实际上是将 Dep.target 指向的实例，放在了当前的 dep 队列中，如果存在数据本身又是一个对象的情况，则需要将这个依赖关系和子属性也进行绑定，这里实际上需要注意的一点是，子属性在做绑定的时候，是存在多次绑定的情况的，所以 Watcher 在 addDep 的时候，是有一个去重判断的逻辑的。set 方法在获取的时候，会执行递归响应式处理，具体的判断还是由 observe 方法控制，set 的时候，会触发响应式通知（有一点可能上面说的比较模糊，就是 dep.depend 方法调用的时候，实际上触发的 watcher 的 addDep 方法，在 watcher 的 addDep 方法中，实际上会进行一个双向绑定，即 watcher 和当前的 dep 之间进行双向绑定，互为依赖）。
+
+这里还有一个点，为什么Dep实例会被和数据绑定起来，是因为闭包，将Dep暂存在了内存中，所以Dep实例一直存在。
+
+```javascript
+export function defineReactive(
+    obj: Object,
+    key: string,
+    val: any,
+    customSetter?: ?Function,
+    shallow?: boolean
+) {
+    // 创建key一一对应的dep
+    const dep = new Dep();
+
+    const property = Object.getOwnPropertyDescriptor(obj, key);
+    if (property && property.configurable === false) {
+        return;
+    }
+
+    // cater for pre-defined getter/setters
+    const getter = property && property.get;
+    const setter = property && property.set;
+    if ((!getter || setter) && arguments.length === 2) {
+        val = obj[key];
+    }
+
+    // 递归遍历
+    // 这里有个比较巧妙的点，observe递归的实际上只有数组和对象，然后在第一执行observe的时候，前置操作里已经将data进行了处理，让其一定是对象
+    let childOb = !shallow && observe(val);
+    Object.defineProperty(obj, key, {
+        enumerable: true,
+        configurable: true,
+        get: function reactiveGetter() {
+            const value = getter ? getter.call(obj) : val;
+            // 如果存在，说明此次调用触发者是一个Watcher实例
+            // dep n：n watcher
+            if (Dep.target) {
+                // 建立dep和Dep.target之间依赖关系
+                // TODO 这里需要注意的是，设置的Dep.target到底是个什么东西，理论上这个里设置的应该是一个Watcher，因为只有给Watcher添加对应的依赖，才有意义
+                dep.depend();
+
+                if (childOb) {
+                    // 建立ob内部dep和Dep.target之间依赖关系
+                    // 这里只考虑子属性即可，因为在上方执行observe递归的时候，子属性也会执行相同的判断进行递归
+                    childOb.dep.depend();
+                    // 如果是数组，数组内部所有项都要做相同处理
+                    if (Array.isArray(value)) {
+                        dependArray(value);
+                    }
+                }
+            }
+            return value;
+        },
+        set: function reactiveSetter(newVal) {
+            const value = getter ? getter.call(obj) : val;
+            /* eslint-disable no-self-compare */
+            if (newVal === value || (newVal !== newVal && value !== value)) {
+                return;
+            }
+            /* eslint-enable no-self-compare */
+            if (process.env.NODE_ENV !== "production" && customSetter) {
+                customSetter();
+            }
+            // #7981: for accessor properties without setter
+            if (getter && !setter) return;
+            if (setter) {
+                setter.call(obj, newVal);
+            } else {
+                val = newVal;
+            }
+            // 如果新的数据是一个对象或者数组，那么要重新执行数据响应式处理
+            childOb = !shallow && observe(newVal);
+            // 通知watcher进行修改
+            dep.notify();
+        },
+    });
+}
+```
+
+(1) Dep 实例做了什么？
+
+Dep 实例的源码在 vue\src\core\observer\dep.js 路径下，Dep实例实际上为
