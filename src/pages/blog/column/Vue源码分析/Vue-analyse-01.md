@@ -626,7 +626,7 @@ export function stateMixin(Vue: Class<Component>) {
 
 文件路径：vue\src\core\instance\events.js
 
-eventsMixin 在 vue\src\core\instance\events.js 文件下，Vue 原型上挂载一些实例方法，做事件处理，本别是$on、$once、$off、$emit，这些方法的使用场景可以看一下[Vue 官方的 API](https://cn.vuejs.org/v2/api/?#vm-on)。
+eventsMixin 在 vue\src\core\instance\events.js 文件下，Vue 原型上挂载一些实例方法，做事件处理，分别是$on、$once、$off、$emit，这些方法的使用场景可以看一下[Vue 官方的 API](https://cn.vuejs.org/v2/api/?#vm-on)。
 
 ```javascript
 export function eventsMixin (Vue: Class<Component>) {
