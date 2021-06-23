@@ -1200,7 +1200,7 @@ methodsToPatch.forEach(function (method) {
 
 实际执行响应式操作的是 defineReactive 函数，这个函数会为每一个做响应式处理的数据都生成一个 Dep 实例，首先在做响应式处理的时候，会调用 Object.getOwnPropertyDescriptor 方法来判断这个数据是否是可以修改的，由于可能存在数据的值本身是一个对象或者是一个数组的情况，所以会递归调用 observe，由 observe 判断是否需要处理，这里有一个点比较难理解的是，get 中有一个 Dep.target 的逻辑，如果 Dep.target 存在，那么说明此次调用的是一个 Watcher 实例，这个时候，需要将这个实例绑定到这个响应式数据上，因为只有这样，后续这个数据发生变化的时候，才能够触发对应的依赖，dep.depend()这个方法，实际上是将 Dep.target 指向的实例，放在了当前的 dep 队列中，如果存在数据本身又是一个对象的情况，则需要将这个依赖关系和子属性也进行绑定，这里实际上需要注意的一点是，子属性在做绑定的时候，是存在多次绑定的情况的，所以 Watcher 在 addDep 的时候，是有一个去重判断的逻辑的。set 方法在获取的时候，会执行递归响应式处理，具体的判断还是由 observe 方法控制，set 的时候，会触发响应式通知（有一点可能上面说的比较模糊，就是 dep.depend 方法调用的时候，实际上触发的 watcher 的 addDep 方法，在 watcher 的 addDep 方法中，实际上会进行一个双向绑定，即 watcher 和当前的 dep 之间进行双向绑定，互为依赖）。
 
-这里还有一个点，为什么Dep实例会被和数据绑定起来，是因为闭包，将Dep暂存在了内存中，所以Dep实例一直存在。
+这里还有一个点，为什么 Dep 实例会被和数据绑定起来，是因为闭包，将 Dep 暂存在了内存中，所以 Dep 实例一直存在。
 
 ```javascript
 export function defineReactive(
@@ -1278,6 +1278,397 @@ export function defineReactive(
 }
 ```
 
-(1) Dep 实例做了什么？
+(1) Dep （vue\src\core\observer\dep.js）
 
-Dep 实例的源码在 vue\src\core\observer\dep.js 路径下，Dep实例实际上为
+Dep 实例的源码在 vue\src\core\observer\dep.js 路径下，Dep 实例实际上主要是对依赖的一个保存，然后包含了 addSub(添加方法)、removeSub(移除方法)、depend(依赖绑定)、notify(响应)。notify 在处理响应的 watcher 的时候，是先拷贝了一份数据出来，然后在执行每个 Watcher 的 update 方法。depend 方法处理的时候，实际上是一个双向绑定的过程，Watcher 绑定 Dep 的同时，Watcher 中也会调用当前 Dep 的 addSub 方法，进行双向绑定。
+
+从源码里可以看出来，有一个全局的 targetStack(目标栈)，这个应该是避免了 Watcher 嵌套的问题，每次设置的都是栈顶元素，这样在嵌套的 Watcher 触发的时候，就可以准确的判定当前的 Watcher 是哪个了。
+
+```javascript
+export default class Dep {
+    static target: ?Watcher;
+    id: number;
+    subs: Array<Watcher>;
+
+    constructor() {
+        this.id = uid++;
+        this.subs = [];
+    }
+
+    addSub(sub: Watcher) {
+        this.subs.push(sub);
+    }
+
+    removeSub(sub: Watcher) {
+        remove(this.subs, sub);
+    }
+
+    depend() {
+        if (Dep.target) {
+            Dep.target.addDep(this);
+        }
+    }
+
+    notify() {
+        // stabilize the subscriber list first
+        // 严格保证执行顺序是按照生成顺序执行的
+        const subs = this.subs.slice();
+        if (process.env.NODE_ENV !== "production" && !config.async) {
+            // subs aren't sorted in scheduler if not running async
+            // we need to sort them now to make sure they fire in correct
+            // order
+            subs.sort((a, b) => a.id - b.id);
+        }
+        for (let i = 0, l = subs.length; i < l; i++) {
+            subs[i].update();
+        }
+    }
+}
+
+Dep.target = null;
+const targetStack = [];
+
+export function pushTarget(target: ?Watcher) {
+    targetStack.push(target);
+    Dep.target = target;
+}
+
+export function popTarget() {
+    targetStack.pop();
+    Dep.target = targetStack[targetStack.length - 1];
+}
+```
+
+(2) Watcher （vue\src\core\observer\watcher.js）
+
+Watcher 类的方法在 vue\src\core\observer\watcher.js 文件中，在实例化的时候，Watcher 主要是根据 options 初始化一些 Watcher 实例的参数信息，然后获取 getter 方法，这里主要是为了处理响应式问题，有个点需要注意，那就是 expOrFn 的区分，当 expOrFn 不是 function 的时候，实际上应该是 watch 监听的属性内容，这个时候需要进行路径解析，即将 a.b.c 这种格式的属性做一次解析，所以 parsePath(expOrFn)最后返回的是一个方法，但是提前处理了 expOrFn 这个值。
+
+有一个比较难以理解的点是，computed 计算属性在初次处理的时候，没有调用 get 方法，而是在第一次渲染的时候，才调用了 Watcher 的 get 方法，然后进行了 Watcher 和 Dep 的绑定。
+
+```javascript
+export default class Watcher {
+    vm: Component;
+    expression: string;
+    cb: Function;
+    id: number;
+    deep: boolean;
+    user: boolean;
+    lazy: boolean;
+    sync: boolean;
+    dirty: boolean;
+    active: boolean;
+    deps: Array<Dep>;
+    newDeps: Array<Dep>;
+    depIds: SimpleSet;
+    newDepIds: SimpleSet;
+    before: ?Function;
+    getter: Function;
+    value: any;
+
+    constructor(
+        vm: Component,
+        expOrFn: string | Function,
+        cb: Function,
+        options?: ?Object,
+        isRenderWatcher?: boolean
+    ) {
+        this.vm = vm;
+        // 如果是renderWatcher，即用于当前实例的渲染的，需要将当前Watcher实例挂载到Vue实例上（_watcher）
+        if (isRenderWatcher) {
+            vm._watcher = this;
+        }
+        // _watchers 是当前Vue实例上所有相关的Watcher实例，包括了renderWatcher、computedWatcher、watchWatcher，
+        vm._watchers.push(this);
+        // options
+        // 这里设置一些组件或者是watch对象的一些参数信息
+        if (options) {
+            this.deep = !!options.deep; // 深度监听，https://cn.vuejs.org/v2/api/#watch
+            this.user = !!options.user; // 作用域插槽，https://cn.vuejs.org/v2/guide/components-slots.html#%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%8F%92%E6%A7%BD
+            this.lazy = !!options.lazy; // 监听计算属性,设置lazy=true，延迟执行watcher的get方法
+            this.sync = !!options.sync; // sync修饰符，https://cn.vuejs.org/v2/guide/components-custom-events.html#sync-%E4%BF%AE%E9%A5%B0%E7%AC%A6
+            this.before = options.before; // TODO 这个暂时不太确定哪里使用的
+        } else {
+            this.deep = this.user = this.lazy = this.sync = false;
+        }
+        this.cb = cb;
+        this.id = ++uid; // uid for batching
+        this.active = true;
+        this.dirty = this.lazy; // for lazy watchers 脏值标记 initComputed初次执行的时候会默认为true
+        this.deps = [];
+        this.newDeps = [];
+        this.depIds = new Set();
+        this.newDepIds = new Set();
+        this.expression =
+            process.env.NODE_ENV !== "production" ? expOrFn.toString() : "";
+        // parse expression for getter
+        // 这里还是区分了一下具体的场景，watch的内容基本上走的都是else的逻辑，parsePath实际上是对路径做了一个解析（所谓的路径解析是指将a.b.c这种属性调用进行解析），并且一层一层的找到最终的那个属性值
+        if (typeof expOrFn === "function") {
+            this.getter = expOrFn;
+        } else {
+            this.getter = parsePath(expOrFn);
+            if (!this.getter) {
+                this.getter = noop;
+                process.env.NODE_ENV !== "production" &&
+                    warn(
+                        `Failed watching path: "${expOrFn}" ` +
+                            "Watcher only accepts simple dot-delimited paths. " +
+                            "For full control, use a function instead.",
+                        vm
+                    );
+            }
+        }
+        // computed计算属性在初次处理的时候，不调用get方法，也不会进行Watcher和dep的绑定操作，而是在第一次渲染的时候进行处理
+        this.value = this.lazy ? undefined : this.get();
+    }
+}
+```
+
+-   get
+
+触发 getter，并且重新获取依赖关系，首先将当前 Watcher 实例设置到 Dep 的 targetStack 栈里，然后调用了 getter 方法，这个时候会触发响应式属性的 Dep，从而执行 Dep.depend 方法，而 Dep.depend 方法会触发当前实例的 addDep 方法，就在 Watcher 和 Dep 之间建立起了联系，并且通过任意一种方式，都可以触发修改。这里还有一个注意点，在深度监听的时候，会遍历响应式属性的值，这个时候就会触发里面响应式的 get 方法，从而实现了 Watcher 和 Dep 的绑定。联系建立完成后，要执行出栈操作，将当前的 Watcher 实例从栈顶推出，然后执行下一个 Watcher 的绑定。最后的时候，需要进行新老依赖关系的替换，将由 cleanupDeps 处理。
+
+```javascript
+/**
+   * Evaluate the getter, and re-collect dependencies.
+   */
+  get() {
+    // 这里将当前的Watcher放到了Dep.target上
+    pushTarget(this);
+    let value;
+    const vm = this.vm;
+    try {
+      // 这里会触发响应式中的get方法，所以会触发执行Dep.depend()方法，而Dep.depend方法会触发当前实例的addDep方法。
+      value = this.getter.call(vm, vm);
+    } catch (e) {
+      if (this.user) {
+        handleError(e, vm, `getter for watcher "${this.expression}"`);
+      } else {
+        throw e;
+      }
+    } finally {
+      // "touch" every property so they are all tracked as
+      // dependencies for deep watching
+      // 如果是深度监听的数据，则需要将所有
+      if (this.deep) {
+        // 这里为什么会实现深度绑定呢，原因在于traverse方法执行的时候，是通过递归的方式进行的，在递归的时候，针对数据里的每一个值，实际上都会触发到响应式的get方法，所以这里存在一个隐式的get调用，以及Watcher和Dep的绑定
+        traverse(value);
+      }
+      popTarget();
+      // watcher和dep的关系绑定完成后，清空deps，即将新的dep关系替换旧的，并将新的清空
+      this.cleanupDeps();
+    }
+    return value;
+  }
+```
+
+traverse 方法在 vue\src\core\observer\traverse.js 下，本质上就是一个递归获取属性的过程，在获取的过程中由于会触发响应式数据的 get 方法，所以会触发 Dep.depend()方法，从而深层绑定依赖关系
+
+```javascript
+const seenObjects = new Set();
+
+/**
+ * Recursively traverse an object to evoke all converted
+ * getters, so that every nested property inside the object
+ * is collected as a "deep" dependency.
+ */
+export function traverse(val: any) {
+    _traverse(val, seenObjects);
+    seenObjects.clear();
+}
+
+function _traverse(val: any, seen: SimpleSet) {
+    let i, keys;
+    const isA = Array.isArray(val);
+    if (
+        (!isA && !isObject(val)) ||
+        Object.isFrozen(val) ||
+        val instanceof VNode
+    ) {
+        return;
+    }
+    if (val.__ob__) {
+        const depId = val.__ob__.dep.id;
+        if (seen.has(depId)) {
+            return;
+        }
+        seen.add(depId);
+    }
+    if (isA) {
+        i = val.length;
+        while (i--) _traverse(val[i], seen);
+    } else {
+        keys = Object.keys(val);
+        i = keys.length;
+        while (i--) _traverse(val[keys[i]], seen);
+    }
+}
+```
+
+-   addDep
+
+判断当前 Dep 是否添加过，如果没添加过，则将它放到新的依赖数组里，然后判断 Dep 中是否添加过当前的 Watcher 实例，没添加过就添加一下，从而实现双向建立联系
+
+```javascript
+/**
+   * Add a dependency to this directive.
+   */
+  addDep(dep: Dep) {
+    const id = dep.id;
+    if (!this.newDepIds.has(id)) {
+      // watcher添加它和dep关系
+      this.newDepIds.add(id);
+      this.newDeps.push(dep);
+      if (!this.depIds.has(id)) {
+        // 反过来，dep添加和watcher的关系
+        dep.addSub(this);
+      }
+    }
+  }
+```
+
+-   cleanupDeps
+
+清理依赖，实际上执行的是一个新老替换的流程，但是由于涉及到和 Dep 双向的关联，所以会先将老依赖中不在新依赖关系里的 Dep 的上移除当前 Watcher 实例，然后直接替换依赖列表即可，记得要初始化新的依赖列表，供后续重新执行流程时使用。
+
+```javascript
+/**
+   * Clean up for dependency collection.
+   */
+  cleanupDeps() {
+    let i = this.deps.length;
+    while (i--) {
+      const dep = this.deps[i];
+      if (!this.newDepIds.has(dep.id)) {
+        dep.removeSub(this);
+      }
+    }
+    let tmp = this.depIds;
+    this.depIds = this.newDepIds;
+    this.newDepIds = tmp;
+    this.newDepIds.clear();
+    tmp = this.deps;
+    this.deps = this.newDeps;
+    this.newDeps = tmp;
+    this.newDeps.length = 0;
+  }
+```
+
+-   update
+
+TODO 后续补充
+
+从逻辑上看，应该是组件更新时触发
+
+```javascript
+/**
+   * Subscriber interface.
+   * Will be called when a dependency changes.
+   */
+  update() {
+    /* istanbul ignore else */
+    if (this.lazy) {
+      this.dirty = true;
+    } else if (this.sync) {
+      this.run();
+    } else {
+      queueWatcher(this);
+    }
+  }
+```
+
+-   run
+
+TODO 后续补充 使用场景暂时未知
+
+```javascript
+  /**
+   * Scheduler job interface.
+   * Will be called by the scheduler.
+   */
+  run() {
+    if (this.active) {
+      const value = this.get();
+      if (
+        value !== this.value ||
+        // Deep watchers and watchers on Object/Arrays should fire even
+        // when the value is the same, because the value may
+        // have mutated.
+        isObject(value) ||
+        this.deep
+      ) {
+        // set new value
+        const oldValue = this.value;
+        this.value = value;
+        if (this.user) {
+          try {
+            this.cb.call(this.vm, value, oldValue);
+          } catch (e) {
+            handleError(
+              e,
+              this.vm,
+              `callback for watcher "${this.expression}"`
+            );
+          }
+        } else {
+          this.cb.call(this.vm, value, oldValue);
+        }
+      }
+    }
+  }
+```
+
+-   evaluate
+
+这个方法理论上只有 computed 获取数据的时候会触发，实际上就是触发 get 方法
+
+```javascript
+  /**
+   * Evaluate the value of the watcher.
+   * This only gets called for lazy watchers.
+   */
+  evaluate() {
+    this.value = this.get();
+    this.dirty = false;
+  }
+```
+
+-   depend
+
+TODO 后续补充 使用场景暂时未知
+
+```javascript
+  /**
+   * Depend on all deps collected by this watcher.
+   */
+  depend() {
+    let i = this.deps.length;
+    while (i--) {
+      this.deps[i].depend();
+    }
+  }
+```
+
+-   teardown
+
+在组件销毁的时候，从当前实例的 vm.\_watchers 列表中移除当前 Watcher，并且移除所有关联该 Watcher 的 Dep 的依赖关系
+
+```javascript
+  /**
+   * Remove self from all dependencies' subscriber list.
+   */
+  teardown() {
+    if (this.active) {
+      // remove self from vm's watcher list
+      // this is a somewhat expensive operation so we skip it
+      // if the vm is being destroyed.
+      if (!this.vm._isBeingDestroyed) {
+        remove(this.vm._watchers, this);
+      }
+      let i = this.deps.length;
+      while (i--) {
+        this.deps[i].removeSub(this);
+      }
+      this.active = false;
+    }
+  }
+```
