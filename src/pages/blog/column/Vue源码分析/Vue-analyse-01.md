@@ -23,6 +23,8 @@
 
 ### 一、 Vue 实例的初始化
 
+![Vue2初始化流程](/images/Vue2源码初始化流程.png)
+
 web-full-dev 的入口文件是 vue\src\platforms\web\entry-runtime-with-compiler.js ,这个文件主要引入了 Vue , 扩展了 Vue 原型上的$mount 方法，这里实际主要做的就是如果 Vue 实例没有 render 方法，就找 template ,template 再没有，就找 el DOM (对于 el DOM，Vue 中是将其克隆了一份)，最终还是执行的原型上的 mount 方法。具体的渲染方法，后续再说，这里主要看一下 Vue 实例的创建流程。这个文件引入的 Vue 是从 vue\src\platforms\web\runtime\index.js 这个文件，这个文件实现了 mount 方法，这些暂时都先不看了，看多了影响思路（所以看源码的时候一定要注意主线，先弄清楚主线，再看旁支，当然这只针对代码接口清晰的项目），Vue 的核心代码在 vue\src\core\index.js 这个文件下.
 
 vue\src\core\index.js 主要做的事情是初始化全局静态 API，Vue 原型和实例上挂载响应式字段，全局方法这里也暂时不看了，直接到 Vue 构造函数的文件（vue\src\core\instance\index.js），这个文件里声明的了 Vue 的构造函数，并且初始话了一下实例方法和属性,具体代码如下：
@@ -779,7 +781,7 @@ Vue.prototype.$emit = function (event: string): Component {
 
 文件路径：vue\src\core\instance\lifecycle.js
 
-实例上挂载一些生命周期相关的方法，有\_update、$forceUpdate、$destroy，其中\_update 是不对外暴露的，是 Vue 内部调用的，\_update 是做 diff 算法执行的方法，这里主要调用了**patch**方法，这个方法在入口文件中执行的挂载。
+实例上挂载一些生命周期相关的方法，有\_update、$forceUpdate、$destroy，其中\_update 是不对外暴露的，是 Vue 内部调用的，\_update 是做 diff 算法执行的方法，这里主要调用了\_\_patch\_\_方法，这个方法在入口文件中执行的挂载。
 
 -   \_update
 
@@ -981,7 +983,13 @@ Vue.prototype._render = function (): VNode {
 
 ### 二、数据响应式
 
-Vue2 中的响应式处理主要是在 initMixin（vue\src\core\instance\index.js） 方法的 initState（\vue\src\core\instance\state.js） 中的 initData（\vue\src\core\instance\state.js）方法里。如果 data 不存在的时候，Vue 会将一个空对象做响应式处理，这里处理的是 data 中的数据内容，它和 computed 和 watch 中的响应式不同，computed 和 watch 是单独建立了一个 watcher 的方式进行的，对于这两种情况而言，更多的是 get。
+数据响应式整体实际上应该分为三个部分，或者说是三种场景更加贴切（这里的场景不是按照使用场景来区分的，而是通过具体生成操作来区分的），在 Vue 中会触发数据响应式处理的操作有初始化 Data、$set、$delete、初始化 computed、初始化 watch、$watch，这里面初始化data、$set、$delete都是对Data的操作，所以归为一类（都是对数据进行Object.defineProperty，并且都有Render Watcher），初始化computed归为一类(单独的Watcher，也进行Object.defineProperty)，初始化watch、$watch 归为一类（回调方法的 Watcher，$watch稍微有点区别，因为$watch 返回一个方法，可以注销当前的这个 Watcher）。这三种 Watcher 在实际的操作上稍有差别，
+
+#### Data 相关的数据响应式
+
+![数据响应式](/images/Vue2-数据响应式.png)
+
+Vue2 中 Data 相关的响应式处理主要是在 initMixin（vue\src\core\instance\index.js） 方法的 initState（\vue\src\core\instance\state.js） 中的 initData（\vue\src\core\instance\state.js）方法里。如果 data 不存在的时候，Vue 会将一个空对象做响应式处理，这里处理的是 data 中的数据内容，它和 computed 和 watch 中的响应式不同，computed 和 watch 是单独建立了一个 watcher 的方式进行的，对于这两种情况而言，更多的是 get。
 
 initData 中有一个点需要注意，在遍历循环的时候，会对 data 中的数据做一个判断，只有非$和\_开头的字段才会被做响应式处理，数据实际上是保存在当前实例的\_data 属性下的，所以在遍历响应式处理之间，已经对 data 中的数据做了响应式处理，具体代码如下
 
@@ -1017,7 +1025,7 @@ while (i--) {
 }
 ```
 
-Observe 的主要内容在 vue\src\core\observer\index.js 中，这里对数据类型做了要求，只有对象并且不是虚拟 dom 类型的数据才会做响应式处理。这里需要注意的点是，在实例化 Vue 的时候，前面已经对 data 做过了类型要就，即 data 必须返回的是一个对象，所以此时 observer 肯定会执行一次。同时源码中对于已经做过响应式处理的数据，直接使用其响应式实例，避免重复创建
+Observe 的主要内容在 vue\src\core\observer\index.js 中，这里对数据类型做了要求，只有对象并且不是虚拟 dom 类型的数据才会做响应式处理。这里需要注意的点是，在实例化 Vue 的时候，前面已经对 data 做过了类型要就，即 data 必须返回的是一个对象，所以此时 observer 肯定会执行一次。同时源码中对于已经做过响应式处理的数据，直接使用其响应式实例，避免重复创建.
 
 ```javascript
 /**
@@ -1053,7 +1061,7 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
 }
 ```
 
-创建 Observer 实例的时候，实例本身也会创建依赖实例，并挂载到 Observer 实例上，这样子是为了后续数据发生变动的时候，可以触发依赖调用，无论是对象还是数组，这个实例上都要注册一个**ob**的属性，并且指向当前的 Observer，这样后续在添加属性的时候，可以直接使用当前实例，在当前实例上进行响应式处理，而避免再次重新创建整个实例，减小性能消耗。对于非数组的数据，直接触发 walk，即直接进行响应式处理。对于数组来说，则需要通过遍历的形式处理数组中的每一个数据，这样是为了保证如果数组中存在对象的时候，也能进行响应式处理。
+创建 Observer 实例的时候，实例本身也会创建依赖实例，并挂载到 Observer 实例上，这样子是为了后续数据发生变动的时候，可以触发依赖调用，无论是对象还是数组，这个实例上都要注册一个\_\_ob\_\_的属性，并且指向当前的 Observer，这样后续在添加属性的时候，可以直接使用当前实例，在当前实例上进行响应式处理，而避免再次重新创建整个实例，减小性能消耗。对于非数组的数据，直接触发 walk，即直接进行响应式处理。对于数组来说，则需要通过遍历的形式处理数组中的每一个数据，这样是为了保证如果数组中存在对象的时候，也能进行响应式处理。
 
 ```javascript
 export class Observer {
@@ -1144,7 +1152,7 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
 }
 ```
 
-这里处理 array 的方法的文件是 vue\src\core\observer\array.js，首先将 Array 原型克隆一份，实际上数组涉及到的处理方法主要有：push、pop、shift、unshift、splice、sort、reverse 这 7 个方法，复写这些方法的时候，都是通过 Object.defineProperty 响应式处理的，首先要执行原有行为，然后获取**ob**实例，涉及到对原有数组增加数据的场景，只有三个方法，分别是 push、unshift、和 splice，其他的操作，只会删除原有的字段，所以不需要重新执行响应式，这三中方法中，push 和 unshift 方法的入参都是具体的数据，所以处理方式一样，但是对于 splice 方法，第三个入参才是具体需要执行响应式处理的数据，所以需要 slice(2)做一次截取操作，对新增的数据处理完成后，再通知内部的依赖更新。
+这里处理 array 的方法的文件是 vue\src\core\observer\array.js，首先将 Array 原型克隆一份，实际上数组涉及到的处理方法主要有：push、pop、shift、unshift、splice、sort、reverse 这 7 个方法，复写这些方法的时候，都是通过 Object.defineProperty 响应式处理的，首先要执行原有行为，然后获取\_\_ob\_\_实例，涉及到对原有数组增加数据的场景，只有三个方法，分别是 push、unshift、和 splice，其他的操作，只会删除原有的字段，所以不需要重新执行响应式，这三中方法中，push 和 unshift 方法的入参都是具体的数据，所以处理方式一样，但是对于 splice 方法，第三个入参才是具体需要执行响应式处理的数据，所以需要 slice(2)做一次截取操作，对新增的数据处理完成后，再通知内部的依赖更新。
 
 ```javascript
 import { def } from "../util/index";
@@ -1200,7 +1208,7 @@ methodsToPatch.forEach(function (method) {
 
 实际执行响应式操作的是 defineReactive 函数，这个函数会为每一个做响应式处理的数据都生成一个 Dep 实例，首先在做响应式处理的时候，会调用 Object.getOwnPropertyDescriptor 方法来判断这个数据是否是可以修改的，由于可能存在数据的值本身是一个对象或者是一个数组的情况，所以会递归调用 observe，由 observe 判断是否需要处理，这里有一个点比较难理解的是，get 中有一个 Dep.target 的逻辑，如果 Dep.target 存在，那么说明此次调用的是一个 Watcher 实例，这个时候，需要将这个实例绑定到这个响应式数据上，因为只有这样，后续这个数据发生变化的时候，才能够触发对应的依赖，dep.depend()这个方法，实际上是将 Dep.target 指向的实例，放在了当前的 dep 队列中，如果存在数据本身又是一个对象的情况，则需要将这个依赖关系和子属性也进行绑定，这里实际上需要注意的一点是，子属性在做绑定的时候，是存在多次绑定的情况的，所以 Watcher 在 addDep 的时候，是有一个去重判断的逻辑的。set 方法在获取的时候，会执行递归响应式处理，具体的判断还是由 observe 方法控制，set 的时候，会触发响应式通知（有一点可能上面说的比较模糊，就是 dep.depend 方法调用的时候，实际上触发的 watcher 的 addDep 方法，在 watcher 的 addDep 方法中，实际上会进行一个双向绑定，即 watcher 和当前的 dep 之间进行双向绑定，互为依赖）。
 
-这里还有一个点，为什么 Dep 实例会被和数据绑定起来，是因为闭包，将 Dep 暂存在了内存中，所以 Dep 实例一直存在。
+这里还有一个点，为什么 Dep 实例会被和数据绑定起来，是因为闭包，将 Dep 暂存在了内存中，所以 Dep 实例一直存在，并和对象的响应式相关联。
 
 ```javascript
 export function defineReactive(
@@ -1275,6 +1283,94 @@ export function defineReactive(
             dep.notify();
         },
     });
+}
+```
+
+这里实际上有一个隐藏的逻辑，data 中每有一个对象或者 Array，会执行 new Observer 就会生成一个 Dep（这个生成的大管家是用来处理对象或数组中的增删的更新通知） ，对象中每有一个 key，则生成一个 Dep（这个生成的小管家是用来触发值变更的更新通知），具体示意图如下：
+
+![Vue2-Observer-Dep-关系图](/images/Vue2-Observer-Dep-关系图.png)
+
+实际上在 vue\src\core\observer\index.js 文件中，还有提供了两个全局方法，分别是 set 和 del，他们会在实例化执行\_init 方法的时候由 stateMixin 方法挂载到 Vue 实例上，对应$set和$delete 方法，set 方法实际上就是对传入的这个目标对象做响应式处理，当然这里也不一定是响应式对象，所以在 set 方法中，如果目标对象不是一个响应式数据的话，只做赋值，不进行响应式处理，否则做响应式处理，并触发该响应式对象的所有 Watcher。
+
+```javascript
+/**
+ * Set a property on an object. Adds the new property and
+ * triggers change notification if the property doesn't
+ * already exist.
+ */
+export function set(target: Array<any> | Object, key: any, val: any): any {
+    if (
+        process.env.NODE_ENV !== "production" &&
+        (isUndef(target) || isPrimitive(target))
+    ) {
+        warn(
+            `Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`
+        );
+    }
+    if (Array.isArray(target) && isValidArrayIndex(key)) {
+        target.length = Math.max(target.length, key);
+        target.splice(key, 1, val);
+        return val;
+    }
+    if (key in target && !(key in Object.prototype)) {
+        target[key] = val;
+        return val;
+    }
+    const ob = (target: any).__ob__;
+    if (target._isVue || (ob && ob.vmCount)) {
+        process.env.NODE_ENV !== "production" &&
+            warn(
+                "Avoid adding reactive properties to a Vue instance or its root $data " +
+                    "at runtime - declare it upfront in the data option."
+            );
+        return val;
+    }
+    if (!ob) {
+        target[key] = val;
+        return val;
+    }
+    defineReactive(ob.value, key, val);
+    ob.dep.notify();
+    return val;
+}
+```
+
+del 方法实际上就是删除对应属性，只不过对于响应式数据，会触发其所有的 Watcher。
+
+```javascript
+/**
+ * Delete a property and trigger change if necessary.
+ */
+export function del(target: Array<any> | Object, key: any) {
+    if (
+        process.env.NODE_ENV !== "production" &&
+        (isUndef(target) || isPrimitive(target))
+    ) {
+        warn(
+            `Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`
+        );
+    }
+    if (Array.isArray(target) && isValidArrayIndex(key)) {
+        target.splice(key, 1);
+        return;
+    }
+    const ob = (target: any).__ob__;
+    if (target._isVue || (ob && ob.vmCount)) {
+        process.env.NODE_ENV !== "production" &&
+            warn(
+                "Avoid deleting properties on a Vue instance or its root $data " +
+                    "- just set it to null."
+            );
+        return;
+    }
+    if (!hasOwn(target, key)) {
+        return;
+    }
+    delete target[key];
+    if (!ob) {
+        return;
+    }
+    ob.dep.notify();
 }
 ```
 
@@ -1383,10 +1479,10 @@ export default class Watcher {
         // 这里设置一些组件或者是watch对象的一些参数信息
         if (options) {
             this.deep = !!options.deep; // 深度监听，https://cn.vuejs.org/v2/api/#watch
-            this.user = !!options.user; // 作用域插槽，https://cn.vuejs.org/v2/guide/components-slots.html#%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%8F%92%E6%A7%BD
+            this.user = !!options.user; // // 是否是User Watcher，即通过$watch监听的（watch也属于User Watcher）,具体的可以看一下$watch这个方法
             this.lazy = !!options.lazy; // 监听计算属性,设置lazy=true，延迟执行watcher的get方法
-            this.sync = !!options.sync; // sync修饰符，https://cn.vuejs.org/v2/guide/components-custom-events.html#sync-%E4%BF%AE%E9%A5%B0%E7%AC%A6
-            this.before = options.before; // TODO 这个暂时不太确定哪里使用的
+            this.sync = !!options.sync; // 是否同步执行
+            this.before = options.before; // 这个是render Watcher的beforeUpdate声明周期的触发
         } else {
             this.deep = this.user = this.lazy = this.sync = false;
         }
@@ -1555,9 +1651,7 @@ function _traverse(val: any, seen: SimpleSet) {
 
 -   update
 
-TODO 后续补充
-
-从逻辑上看，应该是组件更新时触发
+update 是在 Dep 触发 notify 的时候触发的，这个时候说明响应式属性被执行了 set，Dep 会触发该属性的所有 Watcher 执行 update 方法，update 的时候，如果这个数据是懒加载的（一般只有 computed 的数据是设置 lazy 为 true 的），不会立即触发更新，只有在获取数据的时候，才会更新 computed 的数据，在 Vue 的官方文档中说到，计算属性的结果会被缓存，除非依赖的响应式 property 变化才会重新计算，缓存
 
 ```javascript
 /**
@@ -1672,3 +1766,7 @@ TODO 后续补充 使用场景暂时未知
     }
   }
 ```
+
+这里说明一下为啥 Watcher 和 Dep 需要互相绑定关系，因为实际上在创建实例的时候，同一个属性的 Dep 有可能存在不止一个 Watcher，我们都知道在实例化的时候，会创建一个 Watcher 挂载在 Vue 实例上，并且 Vue.\_watcher 存储这个实例，但是实例中存在 watch、computed，甚至可以通过$watch 手动监听一些属性变化，所以导致了同一个 Dep，有可能有多个 Watcher 监听，然后一个 Watcher 有可能监听多个属性的变化，所以成了 N : N 的关系，所以 Watcher 和 Dep 之间需要相互保存关系。
+
+![Vue2-Watcher-Dep-关系图](/images/Vue2-Watcher-Dep-关系图.png)
