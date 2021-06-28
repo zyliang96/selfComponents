@@ -1651,7 +1651,10 @@ function _traverse(val: any, seen: SimpleSet) {
 
 -   update
 
-update 是在 Dep 触发 notify 的时候触发的，这个时候说明响应式属性被执行了 set，Dep 会触发该属性的所有 Watcher 执行 update 方法，update 的时候，如果这个数据是懒加载的（一般只有 computed 的数据是设置 lazy 为 true 的），不会立即触发更新，只有在获取数据的时候，才会更新 computed 的数据，在 Vue 的官方文档中说到，计算属性的结果会被缓存，除非依赖的响应式 property 变化才会重新计算，缓存
+update 是在 Dep 触发 notify 的时候触发的，这个时候说明响应式属性被执行了 set，Dep 会触发该属性的所有 Watcher 执行 update 方法，update 的时候，如果这个数据是懒加载的（一般只有 computed 的数据是设置 lazy 为 true 的），不会立即触发更新，只有在获取数据的时候，才会更新 computed 的数据，在 Vue 的官方文档中说到，计算属性的结果会被缓存，除非依赖的响应式 property 变化才会重新计算，这里说的缓存是因为，computed 的属性虽然接收的是一个 function，但是在获取的时候，如果所关联的响应式数据未发生改变的时候，是不会再次调用的，这种缓存可以提高一部分效率。这里需要注意的一个点是，computed 和 watch 的不同点从这里更新的处理逻辑既可以看出来，watch 触发的时机要比 computed 更早，因为 watch 的 Watcher 监听到之后就执行了，而 computed 是在渲染的时候执行的（这里有个重要的前提条件，computed 在 template 中存在调用的情况下）。
+
+TODO 这里还有一个问题没有考虑明白，为什么 Vue 实例上的 computed 字段在未在 template 中使用的时候，会在对应的响应式数据变化之后就发生变化了，而且还未触发 computed 的 function
+。这个问题是因为浏览器 console 的时候，对象直接展示的，这个时候如果你看具体的对象中字段的值，实际上是会触发 Object.defineProperty 中的 get 方法的，并且会触发 computed 中注册的 function 的调用，但是在实际获取的时候并不会触发。
 
 ```javascript
 /**
@@ -1672,7 +1675,7 @@ update 是在 Dep 触发 notify 的时候触发的，这个时候说明响应式
 
 -   run
 
-TODO 后续补充 使用场景暂时未知
+触发响应式数据的 get 方法，这里只有在两次回去的数据不一致，并且是如果是深度监听，或者数据本身是对象的情况下才触发回调，由于 User Watcher，即$watch 或者 watch 里面设置的监听函数可能存在执行错误的问题，所以需要通过 try catch 包裹，从而保证不影响框架执行。
 
 ```javascript
   /**
@@ -1713,7 +1716,7 @@ TODO 后续补充 使用场景暂时未知
 
 -   evaluate
 
-这个方法理论上只有 computed 获取数据的时候会触发，实际上就是触发 get 方法
+这个方法理论上只有 computed 获取数据的时候会触发，实际上就是触发 get 方法，因为 computed 的数据更新的机制不太一样，computed 是在渲染的时候再获取的，我认为这个和 Computed 的机制有关系，因为 Computed 实际本质上也是一个响应式属性，但是在 API 中，computed 无论是设置 get、set 的方式还是 function 的方式，本质上都是一个 function，所以频繁的执行，时间是不可控的，所以这种缓存的方式，对于性能是有保障的，所以 computed 的执行时机是在渲染的时候，触发 get 方法，从而更改值。
 
 ```javascript
   /**
@@ -1728,7 +1731,7 @@ TODO 后续补充 使用场景暂时未知
 
 -   depend
 
-TODO 后续补充 使用场景暂时未知
+TODO 获取 Computed 的响应式数据的时候，如果当前 Dep.target 有值，则 target 的这个 Watcher 和 Computed 这个 Watcher 下的所有的 Dep 都进行双向绑定，但是具体的使用场景没有考虑到，后续补充。
 
 ```javascript
   /**
@@ -1770,3 +1773,228 @@ TODO 后续补充 使用场景暂时未知
 这里说明一下为啥 Watcher 和 Dep 需要互相绑定关系，因为实际上在创建实例的时候，同一个属性的 Dep 有可能存在不止一个 Watcher，我们都知道在实例化的时候，会创建一个 Watcher 挂载在 Vue 实例上，并且 Vue.\_watcher 存储这个实例，但是实例中存在 watch、computed，甚至可以通过$watch 手动监听一些属性变化，所以导致了同一个 Dep，有可能有多个 Watcher 监听，然后一个 Watcher 有可能监听多个属性的变化，所以成了 N : N 的关系，所以 Watcher 和 Dep 之间需要相互保存关系。
 
 ![Vue2-Watcher-Dep-关系图](/images/Vue2-Watcher-Dep-关系图.png)
+
+还有一种场景是通过$set和$delete 进行绑定的数据,本质上和 Data 的绑定方式是一样的，只不过对于非响应式数据，多了一些操作罢了，$delete 实际上也只是 delete 属性，然后触发一下 Dep
+
+```javascript
+export function set(target: Array<any> | Object, key: any, val: any): any {
+    if (
+        process.env.NODE_ENV !== "production" &&
+        (isUndef(target) || isPrimitive(target))
+    ) {
+        warn(
+            `Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`
+        );
+    }
+    if (Array.isArray(target) && isValidArrayIndex(key)) {
+        target.length = Math.max(target.length, key);
+        target.splice(key, 1, val);
+        return val;
+    }
+    if (key in target && !(key in Object.prototype)) {
+        target[key] = val;
+        return val;
+    }
+    const ob = (target: any).__ob__;
+    if (target._isVue || (ob && ob.vmCount)) {
+        process.env.NODE_ENV !== "production" &&
+            warn(
+                "Avoid adding reactive properties to a Vue instance or its root $data " +
+                    "at runtime - declare it upfront in the data option."
+            );
+        return val;
+    }
+    if (!ob) {
+        target[key] = val;
+        return val;
+    }
+    defineReactive(ob.value, key, val);
+    ob.dep.notify();
+    return val;
+}
+
+/**
+ * Delete a property and trigger change if necessary.
+ */
+export function del(target: Array<any> | Object, key: any) {
+    if (
+        process.env.NODE_ENV !== "production" &&
+        (isUndef(target) || isPrimitive(target))
+    ) {
+        warn(
+            `Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`
+        );
+    }
+    if (Array.isArray(target) && isValidArrayIndex(key)) {
+        target.splice(key, 1);
+        return;
+    }
+    const ob = (target: any).__ob__;
+    if (target._isVue || (ob && ob.vmCount)) {
+        process.env.NODE_ENV !== "production" &&
+            warn(
+                "Avoid deleting properties on a Vue instance or its root $data " +
+                    "- just set it to null."
+            );
+        return;
+    }
+    if (!hasOwn(target, key)) {
+        return;
+    }
+    delete target[key];
+    if (!ob) {
+        return;
+    }
+    ob.dep.notify();
+}
+```
+
+#### Computed 相关的数据响应式
+
+Computed 相关的数据响应式处理主要是在 initMixin（vue\src\core\instance\index.js） 方法的 initState（\vue\src\core\instance\state.js） 中的 initComputed（\vue\src\core\instance\state.js）方法里。 这里实际上执行的操作很少，只是创建了一个 Watcher，并且绑定到了当前实例的 ComputedWatchers 上，这里需要注意的是，一个 Computed 会生成一个 Watcher，并且 Computed 属性，必须是当前实例上没有的操行，即命名不能重复。
+
+```javascript
+function initComputed(vm: Component, computed: Object) {
+    // $flow-disable-line
+    const watchers = (vm._computedWatchers = Object.create(null));
+    // computed properties are just getters during SSR
+    const isSSR = isServerRendering();
+
+    for (const key in computed) {
+        const userDef = computed[key];
+        const getter = typeof userDef === "function" ? userDef : userDef.get;
+        if (process.env.NODE_ENV !== "production" && getter == null) {
+            warn(`Getter is missing for computed property "${key}".`, vm);
+        }
+
+        if (!isSSR) {
+            // create internal watcher for the computed property.
+            watchers[key] = new Watcher(
+                vm,
+                getter || noop,
+                noop,
+                computedWatcherOptions
+            );
+        }
+
+        // component-defined computed properties are already defined on the
+        // component prototype. We only need to define computed properties defined
+        // at instantiation here.
+        if (!(key in vm)) {
+            defineComputed(vm, key, userDef);
+        } else if (process.env.NODE_ENV !== "production") {
+            if (key in vm.$data) {
+                warn(
+                    `The computed property "${key}" is already defined in data.`,
+                    vm
+                );
+            } else if (vm.$options.props && key in vm.$options.props) {
+                warn(
+                    `The computed property "${key}" is already defined as a prop.`,
+                    vm
+                );
+            }
+        }
+    }
+}
+```
+
+defineComputed 方法中 Computed 由于是作为一个属性挂载到当前实例的，所以本质上也是一个响应式数据，所以也是使用 Object.defineProperty 来实现的，这里设置 get 方法有点不同，因为在 SSR 场景下，是无法触发到响应式处理逻辑的，所以直接返回调用方法即可。
+
+```javascript
+export function defineComputed(
+    target: any,
+    key: string,
+    userDef: Object | Function
+) {
+    const shouldCache = !isServerRendering();
+    if (typeof userDef === "function") {
+        sharedPropertyDefinition.get = shouldCache
+            ? createComputedGetter(key)
+            : createGetterInvoker(userDef);
+        sharedPropertyDefinition.set = noop;
+    } else {
+        sharedPropertyDefinition.get = userDef.get
+            ? shouldCache && userDef.cache !== false
+                ? createComputedGetter(key)
+                : createGetterInvoker(userDef.get)
+            : noop;
+        sharedPropertyDefinition.set = userDef.set || noop;
+    }
+    if (
+        process.env.NODE_ENV !== "production" &&
+        sharedPropertyDefinition.set === noop
+    ) {
+        sharedPropertyDefinition.set = function () {
+            warn(
+                `Computed property "${key}" was assigned to but it has no setter.`,
+                this
+            );
+        };
+    }
+    Object.defineProperty(target, key, sharedPropertyDefinition);
+}
+```
+
+```javascript
+function createGetterInvoker(fn) {
+    return function computedGetter() {
+        return fn.call(this, this);
+    };
+}
+```
+
+createComputedGetter ，浏览器场景下只有在触发过 run 之后，实际上才会触发到 Computed 属性的响应式 get 方法，否则直接返回的缓存下来的值，这个也就是出于性能上的要求，所以做的设计
+
+这里 Dep 绑定的这个没有想明白具体场景。
+
+```javascript
+function createComputedGetter(key) {
+    return function computedGetter() {
+        const watcher = this._computedWatchers && this._computedWatchers[key];
+        if (watcher) {
+            if (watcher.dirty) {
+                watcher.evaluate();
+            }
+            if (Dep.target) {
+                watcher.depend();
+            }
+            return watcher.value;
+        }
+    };
+}
+```
+
+#### Watch 相关的数据响应式
+
+Watch 相关的数据响应式处理主要是在 initMixin（vue\src\core\instance\index.js） 方法的 initState（\vue\src\core\instance\state.js） 中的 initWatch \vue\src\core\instance\state.js）方法里，实际上就是创建一个 Watcher，这里调用的也是当前实例上的$watcher方法，所以本质还是$watch 。
+
+```javascript
+function initWatch(vm: Component, watch: Object) {
+    for (const key in watch) {
+        const handler = watch[key];
+        if (Array.isArray(handler)) {
+            for (let i = 0; i < handler.length; i++) {
+                createWatcher(vm, key, handler[i]);
+            }
+        } else {
+            createWatcher(vm, key, handler);
+        }
+    }
+}
+function createWatcher(
+    vm: Component,
+    expOrFn: string | Function,
+    handler: any,
+    options?: Object
+) {
+    if (isPlainObject(handler)) {
+        options = handler;
+        handler = handler.handler;
+    }
+    if (typeof handler === "string") {
+        handler = vm[handler];
+    }
+    return vm.$watch(expOrFn, handler, options);
+}
+```
