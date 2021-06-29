@@ -983,6 +983,8 @@ Vue.prototype._render = function (): VNode {
 
 ### 二、数据响应式
 
+Vue、react、angular本质上都是数据驱动的，所以他们都包含了状态数据（所谓的状态数据就是能够引起视图变化的数据）的处理，Vue中是响应式处理的方式，实际使用的是Object.defineProperty方法，由于这个方法存在着很多局限性，所以也做了很多的兼容处理。
+
 数据响应式整体实际上应该分为三个部分，或者说是三种场景更加贴切（这里的场景不是按照使用场景来区分的，而是通过具体生成操作来区分的），在 Vue 中会触发数据响应式处理的操作有初始化 Data、$set、$delete、初始化 computed、初始化 watch、$watch，这里面初始化data、$set、$delete都是对Data的操作，所以归为一类（都是对数据进行Object.defineProperty，并且都有Render Watcher），初始化computed归为一类(单独的Watcher，也进行Object.defineProperty)，初始化watch、$watch 归为一类（回调方法的 Watcher，$watch稍微有点区别，因为$watch 返回一个方法，可以注销当前的这个 Watcher）。这三种 Watcher 在实际的操作上稍有差别，
 
 #### Data 相关的数据响应式
