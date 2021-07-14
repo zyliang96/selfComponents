@@ -1441,6 +1441,8 @@ export function popTarget() {
 
 Watcher 类的方法在 vue\src\core\observer\watcher.js 文件中，在实例化的时候，Watcher 主要是根据 options 初始化一些 Watcher 实例的参数信息，然后获取 getter 方法，这里主要是为了处理响应式问题，有个点需要注意，那就是 expOrFn 的区分，当 expOrFn 不是 function 的时候，实际上应该是 watch 监听的属性内容，这个时候需要进行路径解析，即将 a.b.c 这种格式的属性做一次解析，所以 parsePath(expOrFn)最后返回的是一个方法，但是提前处理了 expOrFn 这个值。
 
+这里需要注意，Watcher是有id的，这个Watcher创建的时间越早，那么Watcher的id越小，相反越晚id越大，因为后续在更新的时候，会根据id进行排序，这里还有一个算是隐藏的一个逻辑，就是在整个Watch中注册的Watcher要比组件更新的Watcher注册的更早，所以会在组件更新前先触发，可以做一个测试，watch监听一个属性变化，视图中展示这个数据，通过按钮触发更新，你会发现，在watch中的方法被调用到时候，视图还没有进行更新，在watch运行完成之后，视图才发生变化。
+
 有一个比较难以理解的点是，computed 计算属性在初次处理的时候，没有调用 get 方法，而是在第一次渲染的时候，才调用了 Watcher 的 get 方法，然后进行了 Watcher 和 Dep 的绑定。
 
 ```javascript
@@ -1483,7 +1485,7 @@ export default class Watcher {
             this.deep = !!options.deep; // 深度监听，https://cn.vuejs.org/v2/api/#watch
             this.user = !!options.user; // // 是否是User Watcher，即通过$watch监听的（watch也属于User Watcher）,具体的可以看一下$watch这个方法
             this.lazy = !!options.lazy; // 监听计算属性,设置lazy=true，延迟执行watcher的get方法
-            this.sync = !!options.sync; // 是否同步执行
+            this.sync = !!options.sync; // 是否同步执行,应该只有Watch里的可以配置
             this.before = options.before; // 这个是render Watcher的beforeUpdate声明周期的触发
         } else {
             this.deep = this.user = this.lazy = this.sync = false;
@@ -1653,10 +1655,10 @@ function _traverse(val: any, seen: SimpleSet) {
 
 -   update
 
-update 是在 Dep 触发 notify 的时候触发的，这个时候说明响应式属性被执行了 set，Dep 会触发该属性的所有 Watcher 执行 update 方法，update 的时候，如果这个数据是懒加载的（一般只有 computed 的数据是设置 lazy 为 true 的），不会立即触发更新，只有在获取数据的时候，才会更新 computed 的数据，在 Vue 的官方文档中说到，计算属性的结果会被缓存，除非依赖的响应式 property 变化才会重新计算，这里说的缓存是因为，computed 的属性虽然接收的是一个 function，但是在获取的时候，如果所关联的响应式数据未发生改变的时候，是不会再次调用的，这种缓存可以提高一部分效率。这里需要注意的一个点是，computed 和 watch 的不同点从这里更新的处理逻辑既可以看出来，watch 触发的时机要比 computed 更早，因为 watch 的 Watcher 监听到之后就执行了，而 computed 是在渲染的时候执行的（这里有个重要的前提条件，computed 在 template 中存在调用的情况下）。
+update 是在 Dep 触发 notify 的时候触发的，这个时候说明响应式属性被执行了 set，Dep 会触发该属性的所有 Watcher 执行 update 方法，update 的时候，如果这个数据是懒加载的（一般只有 computed 的数据是设置 lazy 为 true 的），不会立即触发更新，只有在获取数据的时候，才会更新 computed 的数据，在 Vue 的官方文档中说到，计算属性的结果会被缓存，除非依赖的响应式 property 变化才会重新计算，这里说的缓存是因为，computed 的属性虽然接收的是一个 function，但是在获取的时候，如果所关联的响应式数据未发生改变的时候，是不会再次调用的，这种缓存可以提高一部分效率。这里需要注意的一个点是，computed 和 watch 的不同点从这里更新的处理逻辑既可以看出来，watch 触发的时机要比 computed 更早，因为 watch 的 Watcher 监听到之后就执行了，而 computed 是在渲染的时候执行的（这里有个重要的前提条件，computed 在 template 中存在调用的情况下）。有设置sync 为 true的则会在数据变化之后，立即执行改变，而不是放到更新队列中更新。
 
-TODO 这里还有一个问题没有考虑明白，为什么 Vue 实例上的 computed 字段在未在 template 中使用的时候，会在对应的响应式数据变化之后就发生变化了，而且还未触发 computed 的 function
-。这个问题是因为浏览器 console 的时候，对象直接展示的，这个时候如果你看具体的对象中字段的值，实际上是会触发 Object.defineProperty 中的 get 方法的，并且会触发 computed 中注册的 function 的调用，但是在实际获取的时候并不会触发。
+TODO 问： 这里还有一个问题没有考虑明白，为什么 Vue 实例上的 computed 字段在未在 template 中使用的时候，会在对应的响应式数据变化之后就发生变化了，而且还未触发 computed 的 function
+。答：这个问题是因为浏览器 console 的时候，对象直接展示的，这个时候如果你看具体的对象中字段的值，实际上是会触发 Object.defineProperty 中的 get 方法的，并且会触发 computed 中注册的 function 的调用，但是在实际获取的时候并不会触发。
 
 ```javascript
 /**
