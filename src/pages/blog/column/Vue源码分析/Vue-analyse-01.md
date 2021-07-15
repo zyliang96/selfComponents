@@ -636,7 +636,7 @@ export function eventsMixin (Vue: Class<Component>) {
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     ...
   }
-
+dc
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     ...
   }
