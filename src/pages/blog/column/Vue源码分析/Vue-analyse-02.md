@@ -452,24 +452,31 @@ export const patch: Function = createPatchFunction({ nodeOps, modules });
 
 createPatchFunction 实际上是通过闭包生成了一个处理 VNode -> node 的过程的操作，这里就主要看 createPatchFunction 返回的 patch 方法.
 
-首先，如果没有当前的 VNode，但是存在就的虚拟 DOM，就说明是
-
 ```javascript
 return function patch(oldVnode, vnode, hydrating, removeOnly) {
+    // 没有新的vnode，然是存在老的vnode，则说明是销毁组件，触发销毁对应的操作
+    // 删除操作
     if (isUndef(vnode)) {
         if (isDef(oldVnode)) invokeDestroyHook(oldVnode);
         return;
     }
 
+    // 是否初始化匹配
     let isInitialPatch = false;
+    // 插入的Vnode 队列
     const insertedVnodeQueue = [];
-
+    // 注意这里不是初始化
+    // TODO 如果没有老的vnode，没有root元素，这个时候才会走这个逻辑，具体的场景待研究
     if (isUndef(oldVnode)) {
         // empty mount (likely as component), create new root element
         isInitialPatch = true;
         createElm(vnode, insertedVnodeQueue);
     } else {
+        // 平时框架走这个逻辑
+        // 是否是真实元素
         const isRealElement = isDef(oldVnode.nodeType);
+        // 因为第一次进行渲染的时候，oldVnode应该是root节点，
+        // 不是真实元素，并且老Vnode和新Vnode一致，则进行比对diff计算
         if (!isRealElement && sameVnode(oldVnode, vnode)) {
             // patch existing root node
             patchVnode(
@@ -481,10 +488,14 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
                 removeOnly
             );
         } else {
+            // 这里是初始化流程
+            // 是真实的元素
             if (isRealElement) {
                 // mounting to a real element
                 // check if this is server-rendered content and if we can perform
                 // a successful hydration.
+                // 如果是原生div p标签等元素，并且存在SSR_ATTR属性
+                // 这里应该是SSR部分的逻辑
                 if (
                     oldVnode.nodeType === 1 &&
                     oldVnode.hasAttribute(SSR_ATTR)
@@ -508,14 +519,18 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
                 }
                 // either not server-rendered, or hydration failed.
                 // create an empty node and replace it
+                // 标准化：将传入的真实节点转换为Vnode
                 oldVnode = emptyNodeAt(oldVnode);
             }
 
             // replacing existing element
+            // 宿主元素，即root节点
             const oldElm = oldVnode.elm;
+            // 获取宿主元素的父节点，实际上就是body
             const parentElm = nodeOps.parentNode(oldElm);
 
             // create new node
+            // 创建政客树，并且将它追加到body里面，宿主元素旁边
             createElm(
                 vnode,
                 insertedVnodeQueue,
@@ -527,6 +542,7 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
             );
 
             // update parent placeholder node element, recursively
+            // TODO 这里还没搞明白干啥的
             if (isDef(vnode.parent)) {
                 let ancestor = vnode.parent;
                 const patchable = isPatchable(vnode);
@@ -557,6 +573,7 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
             }
 
             // destroy old node
+            // 删除子元素，如果父元素存在，则删除之前被克隆的宿主元素
             if (isDef(parentElm)) {
                 removeVnodes([oldVnode], 0, 0);
             } else if (isDef(oldVnode.tag)) {
@@ -568,4 +585,255 @@ return function patch(oldVnode, vnode, hydrating, removeOnly) {
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch);
     return vnode.elm;
 };
+```
+
+实际上整体上我们可以将所有的 dom 操作分为 3 中类型：
+
+1. 初始化，创建节点 createElm （src\core\vdom\patch.js）
+
+实际上所有的页面 Vue 的 template 内容，实际上都可以看做是通过元素节点、注释节点、文本节点组合成的，所以 Vue 实际上只要处理这三种类型的新增场景即可，其判断逻辑要较为简单
+
+-   判断是否为元素节点只需判断该 VNode 节点是否有 tag 标签即可。如果有 tag 属性即认为是元素节点，则调用 createElement 方法创建元素节点，通常元素节点还会有子节点，那就递归遍历创建所有子节点，将所有子节点创建好之后 insert 插入到当前元素节点里面，最后把当前元素节点插入到 DOM 中。
+
+-   判断是否为注释节点，只需判断 VNode 的 isComment 属性是否为 true 即可，若为 true 则为注释节点，则调用 createComment 方法创建注释节点，再插入到 DOM 中。
+
+-   如果既不是元素节点，也不是注释节点，那就认为是文本节点，则调用 createTextNode 方法创建文本节点，再插入到 DOM 中。
+
+![创建节点](/images/vnode-createEle.png)
+
+注意：这里 Vue 在为了解决跨平台兼容性，对于节点操作进行了封装，这种实现在 Vue 的 3.0 中也进行了更新，使得整体更容易跨端处理，后续 Vue3.0 中可以详细了解一下
+
+```javascript
+// 创建Element元素
+function createElm(
+    vnode,
+    insertedVnodeQueue,
+    parentElm,
+    refElm,
+    nested,
+    ownerArray,
+    index
+) {
+    if (isDef(vnode.elm) && isDef(ownerArray)) {
+        // This vnode was used in a previous render!
+        // now it's used as a new node, overwriting its elm would cause
+        // potential patch errors down the road when it's used as an insertion
+        // reference node. Instead, we clone the node on-demand before creating
+        // associated DOM element for it.
+        vnode = ownerArray[index] = cloneVNode(vnode);
+    }
+
+    // 判断是否是root节点的插入，根据是否有下一个节点
+    vnode.isRootInsert = !nested; // for transition enter check
+    // 创建自定义组件
+    if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
+        return;
+    }
+
+    const data = vnode.data;
+    const children = vnode.children;
+    const tag = vnode.tag;
+    // 创建元素节点
+    if (isDef(tag)) {
+        // 如果有命名空间（namespace） 就通过创建带命名空间的方法，否则默认方法
+        vnode.elm = vnode.ns
+            ? nodeOps.createElementNS(vnode.ns, tag)
+            : nodeOps.createElement(tag, vnode);
+        setScope(vnode);
+
+        /* istanbul ignore if */
+        if (__WEEX__) {
+            // in Weex, the default insertion order is parent-first.
+            // List items can be optimized to use children-first insertion
+            // with append="tree".
+            const appendAsTree = isDef(data) && isTrue(data.appendAsTree);
+            if (!appendAsTree) {
+                if (isDef(data)) {
+                    invokeCreateHooks(vnode, insertedVnodeQueue);
+                }
+                insert(parentElm, vnode.elm, refElm);
+            }
+            createChildren(vnode, children, insertedVnodeQueue);
+            if (appendAsTree) {
+                if (isDef(data)) {
+                    invokeCreateHooks(vnode, insertedVnodeQueue);
+                }
+                insert(parentElm, vnode.elm, refElm);
+            }
+        } else {
+            // 创建元素节点的字节点
+            createChildren(vnode, children, insertedVnodeQueue);
+            if (isDef(data)) {
+                invokeCreateHooks(vnode, insertedVnodeQueue);
+            }
+            // 插入到DOM中
+            insert(parentElm, vnode.elm, refElm);
+        }
+    } else if (isTrue(vnode.isComment)) {
+        // 创建注释节点
+        vnode.elm = nodeOps.createComment(vnode.text);
+        // 插入到DOM中
+        insert(parentElm, vnode.elm, refElm);
+    } else {
+        // 创建文本节点
+        vnode.elm = nodeOps.createTextNode(vnode.text);
+        // 插入到DOM中
+        insert(parentElm, vnode.elm, refElm);
+    }
+}
+```
+
+2. diff，更新节点
+
+更新节点的时候就需要对节点进行比较了，这里会对节点的类型做区分处理，不同的节点类型会触发不同的操作，更新节点的操作步骤实际上也可以分为三中类型
+
+-   如果 VNode 和 oldVNode 均为静态节点
+
+所谓静态节点，就是不会变化的节点，就和我们所说的静态页面是一个意思，这些节点无论数据发生任何变化其本身都不会发生变化，所以都为静态节点的话，则直接跳过，无需处理。
+
+-   如果 VNode 是文本节点
+
+如果 VNode 是文本节点即表示这个节点内只包含纯文本，那么只需看 oldVNode 是否也是文本节点，如果是，那就比较两个文本是否不同，如果不同则把 oldVNode 里的文本改成跟 VNode 的文本一样。如果 oldVNode 不是文本节点，那么不论它是什么，直接调用 setTextNode 方法把它改成文本节点，并且文本内容跟 VNode 相同。[textContent](https://developer.mozilla.org/zh-CN/docs/Web/API/Node/textContent)返回的是纯文本内容，没有任何的 html 标签。
+
+-   如果 VNode 是元素节点
+
+如果 VNode 是元素节点，则又细分以下两种情况：
+
+    -   该节点包含子节点
+
+    如果新的节点内包含了子节点，那么此时要看旧的节点是否包含子节点，如果旧的节点里也包含了子节点，那就需要递归对比更新子节点；如果旧的节点里不包含子节点，那么这个旧节点有可能是空节点或者是文本节点，如果旧的节点是空节点就把新的节点里的子节点创建一份然后插入到旧的节点里面，如果旧的节点是文本节点，则把文本清空，然后把新的节点里的子节点创建一份然后插入到旧的节点里面。
+
+    -   该节点不包含子节点
+
+    如果该节点不包含子节点，同时它又不是文本节点，那就说明该节点是个空节点，那就好办了，不管旧节点之前里面都有啥，直接清空即可。
+
+![更新节点](/images/vnode-patchVnode.png)
+
+```javascript
+// diff：
+// 分析当前两个节点类型，
+// 如果是元素，更新双方属性、特性等，同时比较双方子元素，这个递归过程，称为深度优先
+// 如果双方是文本，更新文本
+
+function patchVnode(
+    oldVnode,
+    vnode,
+    insertedVnodeQueue,
+    ownerArray,
+    index,
+    removeOnly
+) {
+    // 新老节点是同一个节点，直接抛出，边界判断
+    if (oldVnode === vnode) {
+        return;
+    }
+    // TODO 暂时不清楚这块的逻辑
+    if (isDef(vnode.elm) && isDef(ownerArray)) {
+        // clone reused vnode
+        vnode = ownerArray[index] = cloneVNode(vnode);
+    }
+
+    const elm = (vnode.elm = oldVnode.elm);
+    // 异步组件的处理逻辑
+    if (isTrue(oldVnode.isAsyncPlaceholder)) {
+        if (isDef(vnode.asyncFactory.resolved)) {
+            hydrate(oldVnode.elm, vnode, insertedVnodeQueue);
+        } else {
+            vnode.isAsyncPlaceholder = true;
+        }
+        return;
+    }
+
+    // reuse element for static trees.
+    // note we only do this if the vnode is cloned -
+    // if the new node is not cloned it means the render functions have been
+    // reset by the hot-reload-api and we need to do a proper re-render.
+    // 新老组件都是静态组件，并且静态组件的key值一样，并且当前Vnode是克隆的或者只运行一次的，则直接将当前Vnode实例设置为原来的实例
+    if (
+        isTrue(vnode.isStatic) &&
+        isTrue(oldVnode.isStatic) &&
+        vnode.key === oldVnode.key &&
+        (isTrue(vnode.isCloned) || isTrue(vnode.isOnce))
+    ) {
+        vnode.componentInstance = oldVnode.componentInstance;
+        return;
+    }
+
+    let i;
+    const data = vnode.data;
+    // 钩子
+    if (isDef(data) && isDef((i = data.hook)) && isDef((i = i.prepatch))) {
+        i(oldVnode, vnode);
+    }
+
+    // 获取新老孩子
+    const oldCh = oldVnode.children;
+    const ch = vnode.children;
+
+    // 比较双方属性
+    if (isDef(data) && isPatchable(vnode)) {
+        for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode);
+        if (isDef((i = data.hook)) && isDef((i = i.update))) i(oldVnode, vnode);
+    }
+
+    // 根据几种类型做处理
+
+    // 不是文本节点
+    if (isUndef(vnode.text)) {
+        if (isDef(oldCh) && isDef(ch)) {
+            // 若都存在，判断子节点是否相同，不同则更新子节点
+            // 双方都有子元素，重排
+            if (oldCh !== ch)
+                // 这里才是diff的核心
+                updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly);
+        } else if (isDef(ch)) {
+            /**
+             * 判断oldVnode是否有文本？
+             * 若没有，则把vnode的子节点添加到真实DOM中
+             * 若有，则清空Dom中的文本，再把vnode的子节点添加到真实DOM中
+             */
+            if (process.env.NODE_ENV !== "production") {
+                checkDuplicateKeys(ch);
+            }
+            // 新节点有子元素
+            // 老节点是文本节点的设置文本为空
+            if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, "");
+            // 添加子节点
+            addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
+        } else if (isDef(oldCh)) {
+            // 老节点有子元素，则删除老节点上的所有子节点
+            removeVnodes(oldCh, 0, oldCh.length - 1);
+        } else if (isDef(oldVnode.text)) {
+            // 新来都没有子节点，并且老节点是文本的情况下，直接老节点文本设置为空
+            nodeOps.setTextContent(elm, "");
+        }
+    } else if (oldVnode.text !== vnode.text) {
+        // 是文本节点，并且新老节点文本不一样，则更新节点内容
+        nodeOps.setTextContent(elm, vnode.text);
+    }
+    // 处理钩子
+    if (isDef(data)) {
+        if (isDef((i = data.hook)) && isDef((i = i.postpatch)))
+            i(oldVnode, vnode);
+    }
+}
+```
+
+diff 逻辑：
+
+3. 销毁，删除节点
+
+删除节点实际上只要节点的父节点，然后将子节点删除即可，因为要考虑当前节点真实的父节点是什么所以使用了 parentNode，因为 Fragment 元素并不是一个真实的元素节点。
+
+```javascript
+// 删除节点方法
+function removeNode(el) {
+    // 获取当前元素的父节点
+    const parent = nodeOps.parentNode(el);
+    // element may have already been removed due to v-html / v-text
+    // 如果有父节点则移除当前子节点
+    if (isDef(parent)) {
+        nodeOps.removeChild(parent, el);
+    }
+}
 ```
