@@ -727,7 +727,7 @@ function patchVnode(
     if (oldVnode === vnode) {
         return;
     }
-    // TODO 暂时不清楚这块的逻辑
+    // 这里是在diff子节点的时候，相同节点会执行这里的流程，将老节点克隆一份（这里的克隆实际上就是把isClone属性设置为了true，调用new Vnode 生成一个新的对象，但是具体的值不变，只是引用发生了变化），放在新节点上
     if (isDef(vnode.elm) && isDef(ownerArray)) {
         // clone reused vnode
         vnode = ownerArray[index] = cloneVNode(vnode);
@@ -821,6 +821,307 @@ function patchVnode(
 
 diff 逻辑：
 
+Vue2 中的 diff 逻辑实际上就是首首、尾尾、首尾、尾首比较，尽可能的将范围向中间逼近，缩小需要遍历的范围，这样可以尽可能的减少后续遍历查找是否在老队列中存在的情况时的耗时，在遍历前有个获取老队列中位置的逻辑，从那里可以看出，key 在 diff 过程中的极大性能提升，存在 key 值的，可以直接通过 map 中搜索，通过空间换取了时间，减少了遍历。新老队列中有任意一个队列匹配完成之后，都跳出循环，这个时候判断是新老队列哪个队列匹配完了，如果是老队列匹配完成了（即老队列首指针指向位置大于尾指针指向位置），这个时候说明，新队列中剩下的元素都是需要新增的节点。如果新队列匹配完成（即新队列首指针指向位置大于尾指针指向位置），这个时候说明，老队列中剩余的节点都是需要删除的节点
+
+> 注意：因为移动节点的时候存在将老队列中指定节点置为空的情况，所以当在判断到老队列中开始节点或者结束节点位置不存在的情况时指针需要进行移动
+
+```javascript
+if (isUndef(oldStartVnode)) {
+    // 如果开始节点不存在，就左指针右移
+    oldStartVnode = oldCh[++oldStartIdx]; // Vnode has been moved left
+} else if (isUndef(oldEndVnode)) {
+    // 如果结束节点不存在就有指针左移
+    oldEndVnode = oldCh[--oldEndIdx];
+}
+```
+
+-   首首比较
+
+新老队列首指针指向节点比较，如果节点相同，则对该节点进行属性对比，对比完成后，新老队列首指针都向右移一位
+
+![首首比较](/images/diff-start-start.drawio.png)
+![首首比较](/images/diff-start-start.png)
+
+```javascript
+if (sameVnode(oldStartVnode, newStartVnode)) {
+    // 如果老队列左指针 指向节点和新队列左指针指向节点一致,新老队列都右移
+    patchVnode(
+        oldStartVnode,
+        newStartVnode,
+        insertedVnodeQueue,
+        newCh,
+        newStartIdx
+    );
+    oldStartVnode = oldCh[++oldStartIdx];
+    newStartVnode = newCh[++newStartIdx];
+}
+```
+
+-   尾尾比较
+
+新老队列尾指针指向节点比较，如果节点相同，则对该节点进行属性对比，对比完成后，新老队列尾指针都向左移一位
+
+```javascript
+if (sameVnode(oldEndVnode, newEndVnode)) {
+    // 如果老队列右指针 指向节点和新队列右指针指向节点一致,新老队列都左移
+    patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx);
+    oldEndVnode = oldCh[--oldEndIdx];
+    newEndVnode = newCh[--newEndIdx];
+}
+```
+
+-   首尾比较
+
+老队列首指针指向节点和新队列尾指针指向节点比较，如果节点相同，则对该节点进行属性对比，对比完成后，老队列首指针右移，新队列尾指针左移，将老的首指针指向节点移动到老队列尾指针指向的节点的下一个兄弟节点之前（即尾指针指向的节点之后）
+
+![首尾比较](/images/diff-start-end.png)
+
+```javascript
+if (sameVnode(oldStartVnode, newEndVnode)) {
+    // Vnode moved right
+    patchVnode(
+        oldStartVnode,
+        newEndVnode,
+        insertedVnodeQueue,
+        newCh,
+        newEndIdx
+    );
+    canMove &&
+        nodeOps.insertBefore(
+            parentElm,
+            oldStartVnode.elm,
+            nodeOps.nextSibling(oldEndVnode.elm)
+        );
+    oldStartVnode = oldCh[++oldStartIdx];
+    newEndVnode = newCh[--newEndIdx];
+}
+```
+
+-   尾首比较
+
+老队列尾指针指向节点和新队列首指针指向节点比较，如果节点相同，则对该节点进行属性对比，对比完成后，老队列尾指针左移，新队列首指针右移，将老的尾指针指向节点移动到老队列首指针指向的节点之前
+
+![尾首比较](/images/diff-end-start.png)
+
+```javascript
+if (sameVnode(oldEndVnode, newStartVnode)) {
+    // Vnode moved left
+    patchVnode(
+        oldEndVnode,
+        newStartVnode,
+        insertedVnodeQueue,
+        newCh,
+        newStartIdx
+    );
+    canMove &&
+        nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
+    oldEndVnode = oldCh[--oldEndIdx];
+    newStartVnode = newCh[++newStartIdx];
+}
+```
+
+-   其他情况
+
+这个时候已经是老队列尽可能首尾匹配完了（这个只是暂时的，有可能下一个新队列的首指针指向的节点就和老队列首或尾指针指向的节点相同），这个时候如果存在老队列未匹配列表的集合，就不用再次生成老队列（因为第一次生成的集合一定大于等于再次生成的），然后获取当前新队列首指针指向节点在老队列中的位置，如果不存在，则说明这个节点是新加的，所以直接生成 createElm，如果存在，则说明可能存在位置移动，这个时候将这个可能移动的节点和新队列首指针指向节点比较，如果是相同节点，则对该节点进行属性对比，并且把老队列中的节点移动到新队列，不是则创建新元素。这些判断执行完成后，新队列首指针右移，进行下一轮比较
+
+![其他相同](/images/diff-other-same.png)
+
+![其他不相同](/images/diff-other-nosame.png)
+
+-   循环结束
+
+老队列匹配结束，新队列剩余元素批量新增
+
+![批量新增](/images/diff-dispatch-add.png)
+
+新队列匹配结束，老队列剩余元素批量删除
+
+![批量删除](/images/diff-dispatch-delete.png)
+
+完整的 diff 规则
+
+```javascript
+// 更新子元素
+function updateChildren(
+    parentElm,
+    oldCh,
+    newCh,
+    insertedVnodeQueue,
+    removeOnly
+) {
+    // 老的开始位置
+    let oldStartIdx = 0;
+    // 新的开始位置
+    let newStartIdx = 0;
+    // 老的结束位置
+    let oldEndIdx = oldCh.length - 1;
+    // 老的开始节点
+    let oldStartVnode = oldCh[0];
+    // 老的结束节点
+    let oldEndVnode = oldCh[oldEndIdx];
+    // 新的结束位置
+    let newEndIdx = newCh.length - 1;
+    // 新的开始节点
+    let newStartVnode = newCh[0];
+    // 新的结束节点
+    let newEndVnode = newCh[newEndIdx];
+    // 后续查找需要变量
+    let oldKeyToIdx, idxInOld, vnodeToMove, refElm;
+
+    // removeOnly is a special flag used only by <transition-group>
+    // to ensure removed elements stay in correct relative positions
+    // during leaving transitions
+    // 只有<transition-group> 的时候需要移动
+    const canMove = !removeOnly;
+
+    if (process.env.NODE_ENV !== "production") {
+        checkDuplicateKeys(newCh);
+    }
+
+    while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+        if (isUndef(oldStartVnode)) {
+            // 如果开始节点不存在，就左指针右移
+            oldStartVnode = oldCh[++oldStartIdx]; // Vnode has been moved left
+        } else if (isUndef(oldEndVnode)) {
+            // 如果结束节点不存在就有指针左移
+            oldEndVnode = oldCh[--oldEndIdx];
+        } else if (sameVnode(oldStartVnode, newStartVnode)) {
+            // 如果老队列左指针 指向节点和新队列左指针指向节点一致,新老队列都右移
+            patchVnode(
+                oldStartVnode,
+                newStartVnode,
+                insertedVnodeQueue,
+                newCh,
+                newStartIdx
+            );
+            oldStartVnode = oldCh[++oldStartIdx];
+            newStartVnode = newCh[++newStartIdx];
+        } else if (sameVnode(oldEndVnode, newEndVnode)) {
+            // 如果老队列右指针 指向节点和新队列右指针指向节点一致,新老队列都左移
+            patchVnode(
+                oldEndVnode,
+                newEndVnode,
+                insertedVnodeQueue,
+                newCh,
+                newEndIdx
+            );
+            oldEndVnode = oldCh[--oldEndIdx];
+            newEndVnode = newCh[--newEndIdx];
+        } else if (sameVnode(oldStartVnode, newEndVnode)) {
+            // Vnode moved right
+            patchVnode(
+                oldStartVnode,
+                newEndVnode,
+                insertedVnodeQueue,
+                newCh,
+                newEndIdx
+            );
+            // 将老的首指针指向节点移动到老队列尾指针指向的节点的下一个兄弟节点之前（即尾指针指向的节点之后）
+            canMove &&
+                nodeOps.insertBefore(
+                    parentElm,
+                    oldStartVnode.elm,
+                    nodeOps.nextSibling(oldEndVnode.elm)
+                );
+            oldStartVnode = oldCh[++oldStartIdx];
+            newEndVnode = newCh[--newEndIdx];
+        } else if (sameVnode(oldEndVnode, newStartVnode)) {
+            // Vnode moved left
+            patchVnode(
+                oldEndVnode,
+                newStartVnode,
+                insertedVnodeQueue,
+                newCh,
+                newStartIdx
+            );
+            // 将老的尾指针指向节点移动到老队列首指针指向的节点之前
+            canMove &&
+                nodeOps.insertBefore(
+                    parentElm,
+                    oldEndVnode.elm,
+                    oldStartVnode.elm
+                );
+            oldEndVnode = oldCh[--oldEndIdx];
+            newStartVnode = newCh[++newStartIdx];
+        } else {
+            // 如果不存在老的key转换index的数据，则根据老队列首位指针位置创建对应的map
+            if (isUndef(oldKeyToIdx))
+                oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
+            // 新队列中 左指针指向节点在老队列中的位置
+            idxInOld = isDef(newStartVnode.key)
+                ? oldKeyToIdx[newStartVnode.key]
+                : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx);
+            // 如果在老队列中不存在，则新建元素
+            if (isUndef(idxInOld)) {
+                // New element
+                createElm(
+                    newStartVnode,
+                    insertedVnodeQueue,
+                    parentElm,
+                    oldStartVnode.elm,
+                    false,
+                    newCh,
+                    newStartIdx
+                );
+            } else {
+                // 可能需要移动的节点
+                vnodeToMove = oldCh[idxInOld];
+                // 如果可能需要移动的节点和新队列中 左指针指向节点是同一个节点，则执行diff
+                if (sameVnode(vnodeToMove, newStartVnode)) {
+                    patchVnode(
+                        vnodeToMove,
+                        newStartVnode,
+                        insertedVnodeQueue,
+                        newCh,
+                        newStartIdx
+                    );
+                    // 老队列中移除指定节点，这样在后续老队列删除的时候，不会重复删除
+                    oldCh[idxInOld] = undefined;
+                    // 将移动节点移动到老队列首指针指向的节点之前
+                    canMove &&
+                        nodeOps.insertBefore(
+                            parentElm,
+                            vnodeToMove.elm,
+                            oldStartVnode.elm
+                        );
+                } else {
+                    // 相同的key，但是不是同一个元素，则创建元素
+                    // same key but different element. treat as new element
+                    createElm(
+                        newStartVnode,
+                        insertedVnodeQueue,
+                        parentElm,
+                        oldStartVnode.elm,
+                        false,
+                        newCh,
+                        newStartIdx
+                    );
+                }
+            }
+            // 新队列左指针右移
+            newStartVnode = newCh[++newStartIdx];
+        }
+    }
+    // 老队列中 开始位置大于结束位置的时候，说明老的里面不粗在一致的了，新队列新增节点
+    if (oldStartIdx > oldEndIdx) {
+        refElm = isUndef(newCh[newEndIdx + 1])
+            ? null
+            : newCh[newEndIdx + 1].elm;
+        addVnodes(
+            parentElm,
+            refElm,
+            newCh,
+            newStartIdx,
+            newEndIdx,
+            insertedVnodeQueue
+        );
+    } else if (newStartIdx > newEndIdx) {
+        // 新队列中，开始位置大于结束位置，说明新队列已经匹配结束了，这个时候删除老队列剩余存在的节点
+        removeVnodes(oldCh, oldStartIdx, oldEndIdx);
+    }
+}
+```
+
 3. 销毁，删除节点
 
 删除节点实际上只要节点的父节点，然后将子节点删除即可，因为要考虑当前节点真实的父节点是什么所以使用了 parentNode，因为 Fragment 元素并不是一个真实的元素节点。
@@ -836,4 +1137,33 @@ function removeNode(el) {
         nodeOps.removeChild(parent, el);
     }
 }
+```
+
+#### key 的作用
+
+-   判断两个 vnode 是否相同节点，必要条件之一
+-   工作方式，不添加会怎样
+
+```
+ABCDE
+AFBCDE
+4次更新1次创建追加
+
+ABCDE
+AFBCDE
+
+BCDE
+FBCDE
+
+BCD
+FBCD
+
+BC
+FBC
+
+B
+FB
+
+F
+只剩下F，创建，插入到B前面
 ```
