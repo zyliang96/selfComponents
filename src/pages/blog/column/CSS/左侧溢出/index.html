@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <style>
+        .footer {
+            width: 300px;
+            height: 20px;
+            display: flex;
+            overflow: hidden;
+        }
+        .left {
+            background: #3cc8b4;
+            flex: 1 1 auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 50px;
+        }
+        .right {
+            background: #9bc;
+            max-width: 250px;
+        }
+        .right-ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+    <body>
+        <div class="footer">
+            <div class="left">
+                leftleftleftleftleftleftleftleftleftleftleftleftleft
+            </div>
+            <div class="right">
+                <div class="right-ellipsis">
+                    rightrightrightrightrightrightrightrightright
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
