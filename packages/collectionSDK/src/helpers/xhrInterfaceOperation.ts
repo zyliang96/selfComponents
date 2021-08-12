@@ -5,12 +5,17 @@ import { get as lodashGet, set as lodashSet } from "lodash";
  * 获取url中查询字段
  */
 export function getUrlQuery(url: string): object {
-    const queryStrIdx: number = url.indexOf("?");
-    let queryStr = "";
-    if (queryStrIdx || queryStrIdx === 0) {
-        queryStr = url.slice(queryStrIdx);
+    let result: object = {};
+    try {
+        const queryStrIdx: number = url.indexOf("?");
+        let queryStr = "";
+        if (queryStrIdx || queryStrIdx === 0) {
+            queryStr = url.slice(queryStrIdx);
+        }
+        result = qs.parse(queryStr);
+    } catch (e) {
+        console.error(e);
     }
-    const result: object = qs.params(queryStr);
     return result;
 }
 
