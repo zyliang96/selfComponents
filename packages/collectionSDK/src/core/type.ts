@@ -59,3 +59,4 @@ export interface CollectionOptions {
     routerType?: RouterTypeEnum; // 路由类型
     baseName?: string; // 用于过滤信息的
 }
+

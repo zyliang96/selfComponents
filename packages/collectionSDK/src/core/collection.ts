@@ -2,12 +2,16 @@ import { CollectionOptions } from "./type";
 import { routerEventInit } from "./routerEvent";
 import { requestEventInit } from "./requestEvent";
 import { routerTypeList, RouterTypeEnum } from "./config";
+import { TaskInterface, Task, TaskBaseInfo } from "./task";
 
 /**
  * 埋点实例
  */
 class Collection {
-    public options: CollectionOptions;
+    public options: CollectionOptions; // 配置项
+    public taskList: Array<TaskInterface>; // 任务列表
+    public middleware: Array<Function>; // 中间件列表
+
     constructor(options: CollectionOptions) {
         this.options = options;
         // 注册路由监听事件
@@ -24,4 +28,39 @@ class Collection {
         // 注册请求监听事件
         requestEventInit(options);
     }
+
+    /**
+     * 批量注册中间件
+     * @param middleware
+     */
+    registerMiddlewares(middlewares: Array<Function>) {
+        if (Array.isArray(middlewares)) {
+            this.middleware.push(...middlewares);
+        }
+    }
+
+    /**
+     * 批量注册任务
+     * @param tasks
+     */
+    registerTasks(tasks: Array<TaskBaseInfo>) {
+        if (Array.isArray(tasks)) {
+            let list = [];
+            tasks.forEach((task) => {
+                const taskInterface = new Task(task);
+                list.push(taskInterface);
+            });
+            this.taskList.push(...list);
+        }
+    }
+
+    /**
+     * 注册任务
+     * @param task
+     */
+    registerTask(task: TaskBaseInfo) {
+        const taskInterface = new Task(task);
+        this.taskList.push(taskInterface);
+    }
+    
 }
