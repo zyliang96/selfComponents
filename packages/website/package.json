@@ -1,16 +1,13 @@
 {
-  "name": "selfcomponents",
+  "name": "website",
   "version": "0.0.1",
   "description": "self components library",
   "main": "index.js",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "bootstrap": "yarn",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "build-examples": "webpack --config ./config/webpack.examples.config.js serve --open",
-    "dev:website": "yarn workspace website dev",
+    "dev": "cd scripts && node site.run.js",
     "build": "webpack --config ./scripts/build.js",
     "next-dev": "next"
   },
@@ -31,7 +28,6 @@
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^5.0.1",
     "ejs-loader": "^0.5.0",
-    "eslint": "^7.32.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^4.5.1",
     "less": "^4.1.0",
@@ -52,8 +48,19 @@
     "webpack-dev-server": "^3.11.1"
   },
   "dependencies": {
+    "@types/classnames": "^2.2.11",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.2",
     "babel-polyfill": "^6.26.0",
-    "babel-standalone": "^6.26.0"
+    "babel-standalone": "^6.26.0",
+    "classnames": "^2.2.6",
+    "codemirror": "^5.60.0",
+    "highlight.js": "^10.0.3",
+    "history": "^5.0.0",
+    "marked": "^2.0.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0"
   },
   "typings": "lib/index.d.ts"
 }
