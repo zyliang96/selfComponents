@@ -1,0 +1,33 @@
+{
+  "name": "algorithm-study",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "cd scripts && node build.js",
+    "dev": "cd scripts && node run.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "lint-staged": {
+    "*.js": [
+        "eslint",
+        "prettier --write"
+    ],
+    "*.ts?(x)": [
+        "eslint",
+        "prettier --parser=typescript --write"
+    ]
+},
+  "dependencies": {
+
+  },
+  "devDependencies": {
+    "lint-staged": "^11.1.2",
+    "eslint": "^7.32.0",
+    "prettier": "^2.4.0",
+    "source-map-loader": "^3.0.0",
+    "typescript": "^4.4.3"
+  }
+}
