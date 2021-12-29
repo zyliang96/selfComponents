@@ -6,7 +6,7 @@ import { isFunction } from "@/utils/index";
 export class Node<T> {
     item: T;
     next: Node<T> | null;
-    constructor(value: any) {
+    constructor(value: T) {
         this.item = value;
     }
 }

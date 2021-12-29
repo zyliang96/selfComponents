@@ -20,7 +20,7 @@ export class ArrayQueue<T> {
     }
 
     /**
-     * 返回最早的队列元素
+     * 返回队首元素
      */
     peek(): T {
         if (this.isEmpty()) {
