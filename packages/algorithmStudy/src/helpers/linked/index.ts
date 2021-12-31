@@ -1,3 +1,6 @@
+/**
+ * 链表节点
+ */
 export class LinkedNode<T> {
     item: T;
     next: LinkedNode<T> = null;
@@ -6,10 +9,13 @@ export class LinkedNode<T> {
     }
 }
 
-export class LinkedQueue<T> {
-    private first: LinkedNode<T>; // 首指针
-    private last: LinkedNode<T>; // 尾指针
-    private _size: number = 0; // 大小
+/**
+ * 链表
+ */
+export class Linked<T> {
+    protected first: LinkedNode<T>; // 首指针
+    protected last: LinkedNode<T>; // 尾指针
+    protected _size: number = 0; // 大小
 
     /**
      * 创建节点
@@ -26,29 +32,31 @@ export class LinkedQueue<T> {
     isEmpty(): boolean {
         return this._size === 0;
     }
+    /**
+     * 大小
+     */
+    size(): number {
+        return this._size;
+    }
 
     /**
-     * 返回队首元素
+     * 返回最后一个
+     * @returns
+     */
+    lastOne(): T {
+        if (this.isEmpty()) {
+            throw new RangeError(`list is as array which is null`);
+        }
+        return this.last.item;
+    }
+
+    /**
+     * 返回第一个
      */
     peek(): T {
         if (this.isEmpty()) {
             throw new RangeError(`list is as array which is null`);
         }
         return this.first.item;
-    }
-
-    /**
-     * 入队
-     * @param value
-     */
-    enqueue(value: T): void {
-        const oldLastNode = this.last;
-        this.last = this.createNode(value);
-        if (this.isEmpty()) {
-            this.first = this.last;
-        } else {
-            oldLastNode.next = this.last;
-        }
-        this._size++;
     }
 }

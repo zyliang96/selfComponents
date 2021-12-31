@@ -1,42 +1,11 @@
 import { isFunction } from "@/utils/index";
-
-/**
- * 背包节点
- */
-export class Node<T> {
-    item: T;
-    next: Node<T> | null;
-    constructor(value: T) {
-        this.item = value;
-    }
-}
+import { Linked, LinkedNode } from "@/helpers/linked/index";
 /**
  * 背包
  */
-export class Bag<T> {
-    private _size: number = 0; // 大小
-    private list: Node<T>;
-
-    /**
-     * 创建节点
-     */
-    private createNode(value: T): Node<T> {
-        return new Node<T>(value);
-    }
-
-    /**
-     * 返回大小
-     * @returns
-     */
-    size(): number {
-        return this._size;
-    }
-
-    /**
-     * 是否为空
-     */
-    isEmpty() {
-        return this._size === 0;
+export class LinkedBag<T> extends Linked<T> {
+    constructor() {
+        super();
     }
 
     /**
@@ -44,7 +13,7 @@ export class Bag<T> {
      * @param value
      */
     add(value: T): void {
-        const oldNode: Node<T> = this.list;
+        const oldNode: LinkedNode<T> = this.first;
         const newNode = this.createNode(value);
         newNode.next = oldNode;
         this._size++;
@@ -71,7 +40,7 @@ export class Bag<T> {
             compareFunc = compare;
         }
         let result: boolean = false;
-        let filterItem: Node<T> = this.list;
+        let filterItem: LinkedNode<T> = this.first;
         while (filterItem) {
             if (compareFunc(value, filterItem.item)) {
                 result = true;
@@ -89,7 +58,7 @@ export class Bag<T> {
     [Symbol.iterator]() {
         let count: number = 0;
         let last: number = this._size;
-        let nodeItem: Node<T> = null;
+        let nodeItem: LinkedNode<T> = null;
         return {
             next() {
                 if (count < last) {

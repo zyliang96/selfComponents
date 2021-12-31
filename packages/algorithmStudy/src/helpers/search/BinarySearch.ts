@@ -69,7 +69,7 @@ export function binarySearchFunc<T extends number>(
     list: Array<T>,
     key: T,
     options?: BinarySearchOptions
-) {
+):number {
     const binarySearchInterface = new BinarySearch(options);
     return binarySearchInterface.rank(list, key);
 }
