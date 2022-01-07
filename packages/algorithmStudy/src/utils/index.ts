@@ -45,3 +45,33 @@ export function validateIsArray(list: any): void {
 export function isFunction(fn: any): boolean {
     return typeof fn === "function";
 }
+
+/**
+ * 交换
+ * @param list
+ * @param i
+ * @param j
+ */
+export function exchange<T>(list: Array<T>, i: number, j: number): void {
+    const temp: T = list[i];
+    list[i] = list[j];
+    list[j] = temp;
+}
+
+/**
+ * 小于
+ * @param p
+ * @param q
+ * @param compareFunc
+ * @returns
+ */
+export function less<T extends number>(
+    p: T,
+    q: T,
+    compareFunc?: (p: T, q: T) => number
+) {
+    if (compareFunc) {
+        return compareFunc(p, q) < 0;
+    }
+    return p < q;
+}
