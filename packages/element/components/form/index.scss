@@ -1,0 +1,52 @@
+.myform-layout-box {
+  .myform-layout-item {
+    display: flex;
+    flex-direction: row;
+    .myform-layout-item-required {
+      &::before {
+        display: inline-block;
+        margin-right: 4px;
+        content: "*";
+        font-family: SimSun;
+        line-height: 1;
+        font-size: 14px;
+        color: #f63;
+      }
+    }
+    .myform-layout-item-label {
+      font-size: 14px;
+      color: #333333;
+      margin-right: 6px;
+      text-align: right;
+      height: 30px;
+      line-height: 30px;
+      vertical-align: middle;
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .myform-layout-item-context {
+      flex: 1;
+      position: relative;
+      .dpl-select {
+        width: 100%;
+      }
+      .dpl-calendar-picker {
+        width: 100%;
+      }
+      .dpl-cascader-picker {
+        width: 100%;
+      }
+      .dpl-radio-group {
+        line-height: 30px;
+      }
+      .dpl-checkbox-group {
+        line-height: 30px;
+      }
+    }
+  }
+  .universal-form-item{
+    margin-bottom: 18px;
+  }
+}

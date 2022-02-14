@@ -82,8 +82,3 @@ export class BinaryInsertion<T extends number> extends SortBase<T> {
         }
     }
 }
-
-const sortInterface = new BinaryInsertion();
-let list = [5, 4, 3, 2, 1];
-sortInterface.sort(list);
-console.log(list);
