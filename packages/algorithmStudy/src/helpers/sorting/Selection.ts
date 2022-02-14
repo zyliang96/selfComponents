@@ -3,6 +3,7 @@ import { exchange, less } from "@/utils/index";
 /**
  * 选择排序
  * 选择排序的核心就是，顺序寻找从当前位置起，最小的元素，然后放到当前位置
+ *
  */
 export class Selection<T extends number> extends SortBase<T> {
     sort(list: Array<T>): void {

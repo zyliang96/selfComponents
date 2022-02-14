@@ -75,3 +75,21 @@ export function less<T extends number>(
     }
     return p < q;
 }
+
+/**
+ * 小于
+ * @param p
+ * @param q
+ * @param compareFunc
+ * @returns
+ */
+export function greater<T extends number>(
+    p: T,
+    q: T,
+    compareFunc?: (p: T, q: T) => number
+) {
+    if (compareFunc) {
+        return compareFunc(p, q) < 0;
+    }
+    return p > q;
+}

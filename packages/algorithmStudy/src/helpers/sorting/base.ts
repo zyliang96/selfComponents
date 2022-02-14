@@ -1,7 +1,7 @@
 /**
  * 排序选项
  */
-export interface SortOptions<T> {
+export interface SortBaseOptions<T> {
     compareFunc?: (p: T, q: T) => number;
 }
 
@@ -10,8 +10,8 @@ export interface SortOptions<T> {
  */
 export class SortBase<T> {
     protected _compareFunc: (p: T, q: T) => number = null;
-    constructor(options?: SortOptions<T>) {
-        if (options.compareFunc) {
+    constructor(options?: SortBaseOptions<T>) {
+        if (options && options.compareFunc) {
             this._compareFunc = options.compareFunc;
         }
     }

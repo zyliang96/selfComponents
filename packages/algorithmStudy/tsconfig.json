@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "allowSyntheticDefaultImports": true,
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
@@ -12,7 +13,8 @@
         "moduleResolution": "node",
         "noEmitOnError": true,
         "noFallthroughCasesInSwitch": true,
-        //"rootDir": "./src",
+        // "noImplicitReturns": true,
+        "rootDir": "src",
         "pretty": true,
         "removeComments": true,
         "skipLibCheck": true,
