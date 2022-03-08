@@ -1,5 +1,5 @@
 {
-  "name": "path-to-regexp",
+  "name": "@moon-base/path-to-regexp",
   "version": "1.0.0",
   "description": "",
   "type": "module",

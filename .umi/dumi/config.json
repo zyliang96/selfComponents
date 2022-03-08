@@ -1,0 +1,73 @@
+{
+  "menus": {
+    "zh-CN": {
+      "*": [
+        {
+          "path": "/",
+          "title": "studyLibrary -  学习仓库",
+          "meta": {}
+        }
+      ],
+      "/guide": [
+        {
+          "path": "/guide",
+          "title": "新用户引导组件设计方案",
+          "meta": {}
+        }
+      ],
+      "/pcComponent": [
+        {
+          "title": "阅读器",
+          "path": "/pcComponent/reader",
+          "meta": {},
+          "children": [
+            {
+              "path": "/pcComponent/reader/electronic-reader",
+              "title": "电子阅读器",
+              "meta": {}
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "locales": [
+    {
+      "name": "zh-CN",
+      "label": "中文"
+    }
+  ],
+  "navs": {
+    "zh-CN": [
+      {
+        "title": "指南",
+        "order": 1,
+        "path": "/guide"
+      },
+      {
+        "title": "pc组件",
+        "path": "/pcComponent"
+      }
+    ]
+  },
+  "title": "StudyLibrary",
+  "mode": "site",
+  "repository": {
+    "url": "",
+    "branch": "master"
+  },
+  "theme": {
+    "carrier": "test",
+    "hd": {
+      "rules": [
+        {
+          "mode": "vw",
+          "options": [
+            100,
+            1500
+          ]
+        }
+      ]
+    }
+  }
+}

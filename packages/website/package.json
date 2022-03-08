@@ -1,5 +1,5 @@
 {
-  "name": "website",
+  "name": "@moon-base/website",
   "version": "0.0.1",
   "description": "self components library",
   "main": "index.js",

@@ -8,3 +8,6 @@ yarn-error.log*
 .next
 .idea
 .vscode
+.umi
+.lerna-changelog
+.umi-production

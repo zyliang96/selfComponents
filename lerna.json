@@ -1,0 +1,12 @@
+{
+  "npmClient": "yarn",
+  "command": {
+    "bootstrap": {
+      "registry": "https://registry.npm.taobao.org"
+    }
+  },
+  "packages": [
+    "packages/*"
+  ],
+  "version": "0.0.1"
+}

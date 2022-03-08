@@ -1,5 +1,5 @@
 {
-  "name": "history",
+  "name": "@moon-base/history",
   "version": "1.0.0",
   "description": "",
   "main": "./dist/history.main.js",

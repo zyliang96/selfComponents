@@ -1,0 +1,37 @@
+{
+  "electronicReader": {
+    "default": [
+      {
+        "identifier": "imgList",
+        "description": "展示的资源列表",
+        "type": "ImgItem[]",
+        "required": true
+      },
+      {
+        "identifier": "currentIndex",
+        "description": "当前页码",
+        "type": "number",
+        "default": "1"
+      },
+      {
+        "identifier": "onPageChange",
+        "type": "(pagination: number, imgItem: ImgItem) => void"
+      },
+      {
+        "identifier": "className",
+        "description": "样式",
+        "type": "string"
+      },
+      {
+        "identifier": "style",
+        "description": "设置内联样式，例如 fontSize 和 color",
+        "type": "object"
+      },
+      {
+        "identifier": "prefixCls",
+        "description": "样式前缀",
+        "type": "String"
+      }
+    ]
+  }
+}

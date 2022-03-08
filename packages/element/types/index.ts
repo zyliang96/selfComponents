@@ -12,7 +12,25 @@ export enum SizeEnum {
  * 组件基本的props
  */
 export interface BaseProps {
-  size?: SizeEnum; // 大小
-  children?: React.ReactChild;
-  prefixCls?:String; // 样式前缀
+  /**
+     * @description 样式
+     * @default
+     * */
+  className?: string;
+  /**
+   * @description 设置内联样式，例如 fontSize 和 color
+   * @default
+   * */
+  style?: object;
+  /**
+   * @description 样式前缀
+   * @default
+   * */
+  prefixCls?: String;
+}
+
+
+
+export interface BaseObject {
+  [key: string]: any
 }
