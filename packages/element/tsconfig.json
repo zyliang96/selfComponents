@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "allowSyntheticDefaultImports": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        // "strict": true,
+        // "strictPropertyInitialization": false,
+        // "forceConsistentCasingInFileNames": true,
+        "jsx": "react",
+        "lib": ["dom", "es2018"],
+        "moduleResolution": "node",
+        "noEmitOnError": true,
+        "noFallthroughCasesInSwitch": true,
+        // "noImplicitReturns": true,
+        "pretty": true,
+        "removeComments": true,
+        "skipLibCheck": true,
+        "allowJs": true,
+        "target": "es5",
+        "declaration": true,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        // "resolveJsonModule": true,
+        // "isolatedModules": true,
+        "isolatedModules": false,
+        "downlevelIteration": true,
+        "paths": {
+            "@moon-base/*": ["../*/src"],
+        }
+    },
+    "include": ["./src", "**/*.ts", "**/*.tsx"],
+    "exclude": ["node_modules", "**/__test__"]
+}

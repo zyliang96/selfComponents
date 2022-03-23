@@ -33,7 +33,7 @@ export default function codeParser(props) {
     })
 
     const renderCode = (code) => {
-        import("../../../packages/blocks/index").then((blocksElements) => {
+        import("../../../../blocks/index").then((blocksElements) => {
             const args = ["React", "ReactDOM"]; // 参数名
             const argv = [React, ReactDOM]; //参数值
             for (const key in blocksElements) {

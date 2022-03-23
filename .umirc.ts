@@ -17,7 +17,7 @@ export default {
     },
     // 别名
     alias: {
-
+        // "@moon-base/element":path.resolve(__dirname,'./packages/element/components')
     },
     // 包模块结构分析工具，可以看到项目各模块的大小，按需优化
     // analyze: {

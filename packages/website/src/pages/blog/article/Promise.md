@@ -118,3 +118,19 @@ new Promise((resolve, reject) => {
 
 解析流程：
 宏任务只有一个，所以执行完成之后，输出第一个微任务，外部第一个then，然后执行Promise p , 输出内部Promise，内部第一个then和内部第二个then是作用于同一个Promise，所以按照代码的执行顺序，放到微任务队列中，至此第一个then执行完成，然后讲外部第二个then放入到微任务队列，所以后续的输出是内部第一个then、内部第二个then、外部第二个then。
+
+
+
+```javascript
+console.log(1)
+setTimeout(() => {
+  console.log(2)
+}, 0);
+new Promise((resolve)=>{
+  console.log(3)
+  resolve()
+}).then(()=>{
+  console.log(4)
+})
+console.log(5)
+```

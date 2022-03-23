@@ -63,7 +63,7 @@ export function getRoutes() {
         "exact": true,
         "meta": {
           "filePath": "docs/index.md",
-          "updatedTime": 1646720756457,
+          "updatedTime": 1646735352000,
           "title": "studyLibrary -  学习仓库",
           "hero": {
             "title": "学习仓库，记录学习成果",
@@ -85,7 +85,7 @@ export function getRoutes() {
         "exact": true,
         "meta": {
           "filePath": "docs/guide/index.md",
-          "updatedTime": 1646721374250,
+          "updatedTime": 1646735352000,
           "title": "介绍",
           "order": 1,
           "toc": "menu",
@@ -110,7 +110,7 @@ export function getRoutes() {
         "exact": true,
         "meta": {
           "filePath": "packages/element/components/electronicReader/index.md",
-          "updatedTime": 1646727659754,
+          "updatedTime": 1646735352000,
           "componentName": "electronicReader",
           "mobile": false,
           "title": "电子阅读器",
@@ -144,7 +144,7 @@ export function getRoutes() {
         "exact": true,
         "meta": {
           "filePath": "packages/element/components/guide/README.md",
-          "updatedTime": 1633941277615,
+          "updatedTime": 1646735352000,
           "slugs": [
             {
               "depth": 1,
@@ -166,6 +166,40 @@ export function getRoutes() {
         "title": "新用户引导组件设计方案 - StudyLibrary"
       },
       {
+        "path": "/pcComponent/lego-table/lego-table",
+        "component": require('D:/self/develop/selfComponents/packages/element/components/lego-table/index.md').default,
+        "exact": true,
+        "meta": {
+          "filePath": "packages/element/components/lego-table/index.md",
+          "updatedTime": 1648022165209,
+          "componentName": "lego-table",
+          "mobile": false,
+          "title": "可搭建表格",
+          "nav": {
+            "title": "pc组件",
+            "path": "/pcComponent"
+          },
+          "group": {
+            "title": "可搭建表格",
+            "path": "/pcComponent/lego-table"
+          },
+          "slugs": [
+            {
+              "depth": 3,
+              "value": "基础使用",
+              "heading": "基础使用"
+            },
+            {
+              "depth": 2,
+              "value": "API",
+              "heading": "api"
+            }
+          ],
+          "hasPreviewer": true
+        },
+        "title": "可搭建表格 - StudyLibrary"
+      },
+      {
         "path": "/pcComponent/reader",
         "meta": {},
         "exact": true,
@@ -175,7 +209,13 @@ export function getRoutes() {
         "path": "/pcComponent",
         "meta": {},
         "exact": true,
-        "redirect": "/pcComponent/reader"
+        "redirect": "/pcComponent/lego-table"
+      },
+      {
+        "path": "/pcComponent/lego-table",
+        "meta": {},
+        "exact": true,
+        "redirect": "/pcComponent/lego-table/lego-table"
       }
     ],
     "title": "StudyLibrary",

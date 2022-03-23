@@ -17,6 +17,12 @@
       ],
       "/pcComponent": [
         {
+          "title": "可搭建表格",
+          "path": "/pcComponent/lego-table",
+          "meta": {},
+          "children": []
+        },
+        {
           "title": "阅读器",
           "path": "/pcComponent/reader",
           "meta": {},

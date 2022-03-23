@@ -7,7 +7,8 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "publish": "lerna publish",
-    "dev": "dumi dev"
+    "dev": "dumi dev",
+    "website:dev": "lerna run dev --scope=@moon-base/website --stream"
   },
   "keywords": [
     "components"
