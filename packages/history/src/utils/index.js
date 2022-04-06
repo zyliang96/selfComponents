@@ -1,4 +1,4 @@
-import { enumValueType } from "../config/index";
+import { enumValueType } from "../../config/index";
 /**
  * 创建事件队列
  */

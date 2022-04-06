@@ -61,7 +61,7 @@ export function parsePath(path, basename, currentLocation) {
     if (!locationResult.pathname) {
       locationResult.pathname = currentLocation.pathname;
     } else if (locationResult.pathname.charAt(0) !== "/") {
-      locationResult.pathname = resolvePathname(
+      locationResult.pathname = resolvePathName(
         locationResult.pathname,
         currentLocation.pathname
       );

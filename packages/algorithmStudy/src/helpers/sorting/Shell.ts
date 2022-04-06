@@ -22,7 +22,7 @@ export class Shell<T extends number> extends SortBase<T> {
                 // 按照h的宽度进行处理
                 for (
                     let j = i;
-                    j >= h && less<T>(list[j], list[j - 1], this._compareFunc);
+                    j >= h && less<T>(list[j], list[j - h], this._compareFunc);
                     j -= h
                 ) {
                     exchange(list, j, j - h);

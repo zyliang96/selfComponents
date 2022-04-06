@@ -2,7 +2,7 @@ import {
   createEventList,
   stripTrailingSlash,
   addLeadingSlash,
-} from "../utils/index";
+} from "./utils/index";
 import {
   BeforeUnloadEventType,
   HashChangeEventType,
@@ -13,7 +13,7 @@ import {
   createPath,
   createLocation,
   getBaseHref,
-} from "../utils/LocationUtils";
+} from "./utils/LocationUtils";
 /**
  * 创建history路由
  * @param {*} options
