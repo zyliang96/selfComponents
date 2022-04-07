@@ -276,6 +276,239 @@ export class Merge<T extends number> extends SortBase<T> {
     }
 }
 
+/**
+ * 自底向上归并
+ */
+export class MergeBU<T extends number> extends SortBase<T> {
+
+
+    /**
+    * 排序
+    * @param list 
+    */
+    sort(list: Array<T>): void {
+        if (Array.isArray(list)) {
+            let len = list.length
+            this.sortBase(list, 0, len - 1)
+        }
+    }
+
+    sortBase(list: Array<T>, start?: number, end?: number) {
+        // start如果不存在，则直接设置为0
+        if (!start) {
+            start = 0
+        }
+        // end不存在则设置为列表长度
+        if (!end && end !== 0) {
+            end = list.length - 1
+        }
+        // start 和 end 相等的时候，说明只有一个数字，直接返回即可
+        if (start === end) {
+            return
+        }
+        // 如果开始位置大于结束位置，则直接抛出错误
+        if (start > end) {
+            throw new RangeError(`start in must less than end`)
+        }
+        const len = end - start
+        let copyList = []
+        for (let i = 1; i < len; i *= 2) {
+            for (let j = start; j < end - i; j += i + i) {
+                const mid = j + i - 1
+                const currentEnd = Math.min(j + i + i - 1, end - 1)
+                this.merge(list, copyList, j, mid, currentEnd)
+            }
+        }
+        this.isSorted(list)
+    }
+
+    /**
+     * 原地归并的抽象方法，处理两个列表，这里用两个列表是因为需要保证一个列表的调整不会影响到另一个列表的变换，否则用一个在变换的时候，就会出现问题，这个可以优化
+     */
+    private merge(target: Array<T>, list: Array<T>, left: number, mid: number, right: number) {
+        // TODO 注意，这里的有序只的是从小到大进行排序
+        // 首先判断列表是否是有序的
+        this.isSorted(target, left, mid)
+        this.isSorted(list, mid + 1, right)
+
+        // 需要把target的数据合并到list中
+        for (let i = left; i <= right; i++) {
+            list[i] = target[i]
+        };
+
+        // 这里是对数组进行合并了
+        let i: number = left, j = mid + 1;
+        for (let k = left; k <= right; k++) {
+            if (i > mid) {
+                // i > mid 的时候，说明左半部已经排完了，这个时候，只需要拍右半部剩下的即可
+                target[k] = list[j++];
+            } else if (j > right) {
+                // j > right 的时候，说明右半部已经排完了，这个时候，只需要排左半部剩下的即可
+                target[k] = list[i++];
+            } else if (less(list[i], list[j], this._compareFunc)) {
+                // 如果list[i] < list[j] 则将list[i]的值赋值给target[k]
+                target[k] = list[i++]
+            } else {
+                // 如果list[i] >= list[j] 则将list[j]的值赋值给target[k]
+                target[k] = list[j++]
+            }
+        }
+    }
+
+    /**
+ * 是否已经排序
+ * @param list 
+ * @param start 
+ * @param end 
+ */
+    private isSorted(list: Array<T>, start?: number, end?: number) {
+        // start如果不存在，则直接设置为0
+        if (!start) {
+            start = 0
+        }
+        // end不存在则设置为列表长度
+        if (!end && end !== 0) {
+            end = list.length - 1
+        }
+        // 如果开始位置大于结束位置，则直接抛出错误
+        if (start > end) {
+            throw new RangeError(`start in must less than end`)
+        }
+        // 遍历看是否满足，从小到大排序
+        for (let i = start + 1; i <= end; i++) {
+            if (less<T>(list[i], list[i - 1], this._compareFunc)) {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+/**
+ * 归并排序优化，在数量级较小的情况下，使用插入排序，归并的时候，则根据数据范围进行优化处理
+ */
+export class MergeX<T extends number> extends SortBase<T> {
+    private CUTOFF: number = 7;
+
+
+    /**
+    * 排序
+    * @param list 
+    */
+    sort(list: Array<T>): void {
+        if (Array.isArray(list)) {
+            let len = list.length
+            let copyList = []
+            this.sortBase(list, copyList, 0, len - 1)
+        }
+    }
+
+    sortBase(target: Array<T>, list: Array<T>, start?: number, end?: number) {
+        // start如果不存在，则直接设置为0
+        if (!start) {
+            start = 0
+        }
+        // end不存在则设置为列表长度
+        if (!end && end !== 0) {
+            end = list.length - 1
+        }
+        // start 和 end 相等的时候，说明只有一个数字，直接返回即可
+        if (start === end) {
+            return
+        }
+        // 如果开始位置大于结束位置，则直接抛出错误
+        if (start > end) {
+            throw new RangeError(`start in must less than end`)
+        }
+        if (end < start + this.CUTOFF) {
+            this.insertionSort(target, start, end)
+            return
+        }
+
+        let mid = start + ((end - start) >> 1);
+        this.sortBase(target, list, start, mid)
+        this.sortBase(target, list, mid + 1, end)
+        this.merge(target, list, start, mid, end)
+        this.isSorted(target)
+
+
+    }
+
+    insertionSort(list: Array<T>, left: number, right: number): void {
+        let len = list.length;
+        for (let i = 1; i < len; i++) {
+            for (let j = i; j > 0; j--) {
+                // 这里是从后往前比
+                if (less<T>(list[j], list[j - 1], this._compareFunc)) {
+                    exchange(list, j, j - 1);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 原地归并的抽象方法，处理两个列表，这里用两个列表是因为需要保证一个列表的调整不会影响到另一个列表的变换，否则用一个在变换的时候，就会出现问题，这个可以优化
+     */
+    private merge(target: Array<T>, list: Array<T>, left: number, mid: number, right: number) {
+        // TODO 注意，这里的有序只的是从小到大进行排序
+        // 首先判断列表是否是有序的
+        this.isSorted(target, left, mid)
+        this.isSorted(list, mid + 1, right)
+
+        // 需要把target的数据合并到list中
+        for (let i = left; i <= right; i++) {
+            list[i] = target[i]
+        };
+
+        // 这里是对数组进行合并了
+        let i: number = left, j = mid + 1;
+        for (let k = left; k <= right; k++) {
+            if (i > mid) {
+                // i > mid 的时候，说明左半部已经排完了，这个时候，只需要拍右半部剩下的即可
+                target[k] = list[j++];
+            } else if (j > right) {
+                // j > right 的时候，说明右半部已经排完了，这个时候，只需要排左半部剩下的即可
+                target[k] = list[i++];
+            } else if (less(list[i], list[j], this._compareFunc)) {
+                // 如果list[i] < list[j] 则将list[i]的值赋值给target[k]
+                target[k] = list[i++]
+            } else {
+                // 如果list[i] >= list[j] 则将list[j]的值赋值给target[k]
+                target[k] = list[j++]
+            }
+        }
+    }
+
+    /**
+     * 是否已经排序
+     * @param list 
+     * @param start 
+     * @param end 
+     */
+    private isSorted(list: Array<T>, start?: number, end?: number) {
+        // start如果不存在，则直接设置为0
+        if (!start) {
+            start = 0
+        }
+        // end不存在则设置为列表长度
+        if (!end && end !== 0) {
+            end = list.length - 1
+        }
+        // 如果开始位置大于结束位置，则直接抛出错误
+        if (start > end) {
+            throw new RangeError(`start in must less than end`)
+        }
+        // 遍历看是否满足，从小到大排序
+        for (let i = start + 1; i <= end; i++) {
+            if (less<T>(list[i], list[i - 1], this._compareFunc)) {
+                return false
+            }
+        }
+        return true
+    }
+}
+
 const sortInterface = new Merge();
 // let list = [5, 4, 3, 2, 1, 9, 10, 21, 32, 19, 7, 8, 12, 14, 15];
 // let list = [0, 1, 2, 3, 4, 5, 6, 7, 8];
