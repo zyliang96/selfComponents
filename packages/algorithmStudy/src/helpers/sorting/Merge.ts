@@ -435,8 +435,7 @@ export class MergeX<T extends number> extends SortBase<T> {
     }
 
     insertionSort(list: Array<T>, left: number, right: number): void {
-        let len = list.length;
-        for (let i = 1; i < len; i++) {
+        for (let i = left; i <= right; i++) {
             for (let j = i; j > 0; j--) {
                 // 这里是从后往前比
                 if (less<T>(list[j], list[j - 1], this._compareFunc)) {

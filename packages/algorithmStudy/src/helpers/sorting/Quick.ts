@@ -76,6 +76,7 @@ export class Quick<T extends number> extends SortBase<T> {
 /**
  * 三向切分的快速排序
  * 三分法是将小于 等于 和 大于的做了区分，从而减小比较处理的次数
+ * 三取样切分的问题在于，如果数组中重复元素不多的普通情况下，比标准的二分法多了很多次交换
  */
 export class Quick3way<T extends number> extends SortBase<T> {
     sort(list: Array<T>): void {
@@ -95,7 +96,7 @@ export class Quick3way<T extends number> extends SortBase<T> {
         // 遍历数据
         let i = start + 1;
         // 没有遍历完成的时候，经过这一步操作之后，[start,left-1]都是小于target的数据，[left,right]都是等于target的数据，[right+1,end]都是大于target的数据
-        while (i <= end) {
+        while (i <= right) {
             // list[i] 小于 target 的时候，交换left和right的值，并且都进行+1处理
             if (less<T>(list[i], target, this._compareFunc)) {
                 exchange(list, i++, left++)
@@ -111,3 +112,104 @@ export class Quick3way<T extends number> extends SortBase<T> {
         this.sortBase(list, right + 1, end)
     }
 }
+
+
+/**
+ * 快速排序优化(二路优化)
+ * 1、在对应的数据量小于一定值的时候，进行插入排序
+ * 2、选择比较目标是，选取左右节点和中间节点三个数中，居中的那个数据
+ */
+export class QuickX<T extends number> extends SortBase<T> {
+
+    private INSERTION_SORT_CUTOFF: number = 8
+    sort(list: Array<T>): void {
+        let len = list.length;
+        this.sortBase(list, 0, len - 1)
+    }
+
+
+    sortBase(list: Array<T>, start?: number, end?: number) {
+        if (end <= start) {
+            return
+        }
+        if (end < start + this.INSERTION_SORT_CUTOFF) {
+            this.insertionSort(list, start, end)
+            return
+        }
+        let i = this.partition(list, start, end)
+        this.sortBase(list, start, i - 1)
+        this.sortBase(list, i + 1, end)
+    }
+
+
+    insertionSort(list: Array<T>, left: number, right: number): void {
+        for (let i = left; i <= right; i++) {
+            for (let j = i; j > 0; j--) {
+                // 这里是从后往前比
+                if (less<T>(list[j], list[j - 1], this._compareFunc)) {
+                    exchange(list, j, j - 1);
+                }
+            }
+        }
+    }
+
+
+    /**
+ * 分割数组
+ * @param list 
+ * @param left 
+ * @param right 
+ */
+    partition(list: Array<T>, start: number, end: number): number {
+        // 这里找一个相对中间的数字，只是一种尝试
+        let middleNum = this.median3(list, start, start + ((end - start) >> 1), end)
+        exchange(list, start, middleNum)
+        let left = start;
+        // 这里 +1 是为了后续统一使用--end 的逻辑
+        let right = end + 1;
+        let target = list[left];
+        // 先遍历小于当前位置的，如果和
+        while (less<T>(list[++left], target, this._compareFunc)) {
+            if (left === end) {
+                exchange(list, start, end)
+                return end
+            }
+        }
+        // 遍历右侧小于当前值的
+        while (less<T>(target, list[--right], this._compareFunc)) {
+            if (right === start + 1) {
+                return left
+            }
+        }
+        // left 小于 right 的时候 说明还没有完全筛选，这个时候再次分组
+        while (left < right) {
+            // 小交换，因为上面的逻辑找到了左边第一个大于目标的，右边第一个小于目标的
+            exchange(list, left, right)
+            while (less<T>(list[++left], target, this._compareFunc)) { }
+            while (less<T>(target, list[--right], this._compareFunc)) { }
+        }
+        // 这个时候交换目标值和start的位置，这个试试
+        exchange(list, start, right)
+        return right
+    }
+
+    /**
+     * 找出三个数中的中位数
+     * 两两比较对于三个数来说应该是最快的
+     * @param list 
+     * @param left 
+     * @param middle 
+     * @param right 
+     */
+    median3(list: Array<T>, left: number, middle: number, right: number) {
+        return (less<T>(list[left], list[middle], this._compareFunc)) ?
+            ((less<T>(list[middle], list[right], this._compareFunc)) ? middle : less<T>(list[left], list[right], this._compareFunc) ? right : left) :
+            ((less<T>(list[right], list[middle], this._compareFunc)) ? middle : less<T>(list[right], list[left], this._compareFunc) ? right : left)
+    }
+}
+
+
+
+
+
+
