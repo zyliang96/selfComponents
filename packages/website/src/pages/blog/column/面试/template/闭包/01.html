@@ -1,29 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<script src="http://127.0.0.1:8001/lib/ieService.js"></script>
+	</head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
-    <script>
-        function func() {
-            arr = [];
-            for (let i = 0; i < 3; i++) {
-                arr[i] = function () {
-                    console.log(i);
-                };
-            }
-        }
-
-        func();
-        arr[0]();
-        arr[1]();
-        arr[2]();
-    </script>
-</body>
-
+	<body>
+		<script>
+			console.log(window.__consult_entry_ie);
+			if (window.__consult_entry_ie) {
+				createConsultUrlService =
+					window.__consult_entry_ie.createConsultUrlService;
+				getConsultConfigService =
+					window.__consult_entry_ie.getConsultConfigService;
+				getConsultConfigService({
+					moduleCode: 'cyc_ldts',
+					location: '0000',
+				}).then(function (res) {
+					console.log(res.data);
+					var data = res.data;
+					var buttonList = data.buttonList;
+					createConsultUrlService({
+						buttonId: buttonList[0].id,
+						location: '0000',
+						browserType: '1',
+						user: {
+							personCode: '18100173735',
+							personName: '赵宇亮',
+						},
+					}).then(function (res) {
+						console.log(res.data);
+					});
+				});
+			}
+		</script>
+	</body>
 </html>

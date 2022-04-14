@@ -1,4 +1,5 @@
 // import { exchange, less, greater } from "@/utils/index";
+import { throws } from "assert";
 import { exchange, less, greater } from "../../utils/index";
 /**
  * 数组堆
@@ -314,6 +315,7 @@ export class ArrayBinaryHeap<T extends number>{
 
 
 /**
+ * TODO 后续考虑 还有插入值和去除值的逻辑没有添加
  * 索引数组二叉堆
  */
 
@@ -383,7 +385,7 @@ export class IndexArrayBinaryHeap<T extends number>{
      */
     maxSwim(index: number) {
         // 循环遍历，一直找是否是
-        while (index > 1 && less<T>(this.list[index >> 1], this.list[index], this._compareFunc)) {
+        while (index > 1 && less<T>(this.list[this.countList[index >> 1]], this.list[this.countList[index]], this._compareFunc)) {
             this.exchange(index >> 1, index)
             index = index >> 1
         }
@@ -394,7 +396,7 @@ export class IndexArrayBinaryHeap<T extends number>{
      */
     minSwim(index: number) {
         // 循环遍历，一直找是否是
-        while (index > 1 && greater<T>(this.list[index >> 1], this.list[index], this._compareFunc)) {
+        while (index > 1 && greater<T>(this.list[this.countList[index >> 1]], this.list[this.countList[index]], this._compareFunc)) {
             this.exchange(index >> 1, index)
             index = index >> 1
         }
@@ -420,11 +422,11 @@ export class IndexArrayBinaryHeap<T extends number>{
         while (index * 2 <= len) {
             let firstNum = index * 2;
             // 如果第一个子节点比第二个子节点小，那么就用第二个子节点进行比对，总之找到最大的那个
-            if (firstNum < len && less<T>(this.list[firstNum], this.list[firstNum + 1], this._compareFunc)) {
+            if (firstNum < len && less<T>(this.list[this.countList[firstNum]], this.list[this.countList[firstNum + 1]], this._compareFunc)) {
                 firstNum++
             }
             // 如果当前值 不小于子节点的最大值，说明不需要移动
-            if (!less<T>(this.list[index], this.list[firstNum], this._compareFunc)) {
+            if (!less<T>(this.list[this.countList[index]], this.list[this.countList[firstNum]], this._compareFunc)) {
                 break
             }
             // 交换子节点的最大值和当前节点，然后将index设置为子节点的位置
@@ -442,11 +444,11 @@ export class IndexArrayBinaryHeap<T extends number>{
         while (index * 2 <= this.count) {
             let firstNum = index * 2;
             // 如果第一个子节点比第二个子节点小，那么就用第二个子节点进行比对，总之找到最小的那个
-            if (firstNum < this.count && greater<T>(this.list[firstNum], this.list[firstNum + 1], this._compareFunc)) {
+            if (firstNum < this.count && greater<T>(this.list[this.countList[firstNum]], this.list[this.countList[firstNum + 1]], this._compareFunc)) {
                 firstNum++
             }
             // 如果当前值 不大于 子节点的最小值，说明不需要移动
-            if (!greater<T>(this.list[index], this.list[firstNum], this._compareFunc)) {
+            if (!greater<T>(this.list[index], this.list[this.countList[firstNum]], this._compareFunc)) {
                 break
             }
             // 交换子节点的最小值和当前节点，然后将index设置为子节点的位置
@@ -490,11 +492,11 @@ export class IndexArrayBinaryHeap<T extends number>{
         let left: number = index * 2;
         let right: number = left + 1;
         // 左节点在范围内，并且当前值小于左节点的时候，说明不是最大堆
-        if (left <= this.count && less<T>(this.list[index], this.list[left], this._compareFunc)) {
+        if (left <= this.count && less<T>(this.list[this.countList[index]], this.list[this.countList[left]], this._compareFunc)) {
             return false
         }
         // 右节点在范围内，并且当前节点小于右节点时，说明不是最大堆
-        if (right <= this.count && less<T>(this.list[index], this.list[right], this._compareFunc)) {
+        if (right <= this.count && less<T>(this.list[this.countList[index]], this.list[this.countList[right]], this._compareFunc)) {
             return false
         }
         // 递归左右节点
@@ -515,11 +517,11 @@ export class IndexArrayBinaryHeap<T extends number>{
         let left: number = index * 2;
         let right: number = left + 1;
         // 左节点在范围内，并且当前值大于左节点的时候，说明不是最小堆
-        if (left <= this.count && greater<T>(this.list[index], this.list[left], this._compareFunc)) {
+        if (left <= this.count && greater<T>(this.list[this.countList[index]], this.list[this.countList[left]], this._compareFunc)) {
             return false
         }
         // 右节点在范围内，并且当前节点大于右节点时，说明不是最小堆
-        if (right <= this.count && greater<T>(this.list[index], this.list[right], this._compareFunc)) {
+        if (right <= this.count && greater<T>(this.list[this.countList[index]], this.list[this.countList[right]], this._compareFunc)) {
             return false
         }
         // 递归左右节点
@@ -533,11 +535,13 @@ export class IndexArrayBinaryHeap<T extends number>{
      * 数据交换
      * @param arg 
      */
-    exchange(...arg: any[]) {
-        // 交换数据
-        exchange.call(this, this.list, ...arg)
+    exchange(i: number, j: number, ...arg: any[]) {
+
+        // 交换count 计数
+        exchange.call(this, this.countList, i, j, ...arg)
+        const indexI = this.countList[i], indexJ = this.countList[j];
         // 交换索引
-        exchange.call(this, this.indexList, ...arg)
+        exchange.call(this, this.indexList, indexI, indexJ, ...arg)
     }
 
 
@@ -551,13 +555,96 @@ export class IndexArrayBinaryHeap<T extends number>{
         return !!this.indexList[index] || this.indexList[index] != -1
     }
 
-
+    /**
+     * 插入操作
+     * @param index 
+     * @param val 
+     */
     insert(index: number, val: T): void {
         // 先校验index是否合法，然后判断index是否已经存在
         this.validateIndex(index)
-        this.contains(index);
+        this.checkIndex(index)
         this.indexList[index] = ++this.count;
         this.list[index] = val
+        this.countList[this.count] = index;
+        this.swim(this.count)
+    }
+
+    /**
+     * 校验数据范围
+     */
+    checkCount() {
+        if (this.count === 0) {
+            throw new RangeError(`Priority queue underflow`)
+        }
+    }
+
+    /**
+     * 返回栈顶索引
+     * @returns 
+     */
+    topIndex() {
+        this.checkCount()
+        return this.countList[1]
+    }
+
+    topValue() {
+        this.checkCount()
+        return this.list[this.countList[1]]
+    }
+
+    /**
+     * 删除栈顶元素
+     */
+    delTop() {
+        // 先校验是否超出了范围
+        this.checkCount()
+        // 交换顶部的数据
+        this.exchange(1, this.count - 1)
+        // 移除最后一个数据
+        const topVal = this.countList.pop();
+        // 重置indexList的数据
+        this.indexList[topVal] = -1;
+        // 清楚列表数据
+        this.list[topVal] = null
+        // 下沉
+        this.sink(1);
+        return topVal
+    }
+
+    checkIndex(index: number) {
+        if (!this.contains(index)) {
+            throw new RangeError(`index is not in the priority queue`)
+        }
+    }
+
+    /**
+     * 数据值
+     */
+    keyOf(index: number) {
+        this.validateIndex(index);
+        this.checkIndex(index)
+    }
+
+
+    /**
+     * 改变数据
+     */
+    changeKey(index: number, val: T) {
+        // 先判断index是否合法
+        this.validateIndex(index)
+        this.checkIndex(index)
+        this.list[index] = val;
+        // 线上浮，然后再下沉
+        this.swim(this.indexList[index]);
+        this.sink(this.indexList[index])
+    }
+
+    /**
+     * 改变对应index的数据
+     */
+    change(index: number, val: T) {
+        this.changeKey(index, val)
     }
 
     /**
@@ -570,6 +657,24 @@ export class IndexArrayBinaryHeap<T extends number>{
         if (index > this.maxCount) {
             throw new RangeError(`index is must >= capacity: ${index}`)
         }
+    }
+
+    /**
+     * 删除对应值
+     * @param index 
+     */
+    delete(index: number) {
+        // 先判断index是否合法
+        this.validateIndex(index)
+        this.checkIndex(index)
+        // 交换对应的值和最后一个
+        const num = this.countList[index]
+        this.exchange(num, this.count - 1)
+        this.swim(num)
+        this.sink(num)
+        this.list[index] = null
+        this.indexList[index] = -1
+        this.countList.pop()
     }
 }
 
