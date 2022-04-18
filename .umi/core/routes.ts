@@ -171,7 +171,7 @@ export function getRoutes() {
         "exact": true,
         "meta": {
           "filePath": "packages/element/components/lego-table/index.md",
-          "updatedTime": 1648022165209,
+          "updatedTime": 1648032777000,
           "componentName": "lego-table",
           "mobile": false,
           "title": "可搭建表格",
