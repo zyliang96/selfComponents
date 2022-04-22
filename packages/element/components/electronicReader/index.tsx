@@ -32,6 +32,12 @@ export interface ElectronicReaderProps extends BaseProps {
  * 默认的最小页码
  */
 const defaultMinPage = 1;
+const OptionKind = {
+	VIEWER: 0x02,
+	API: 0x04,
+	WORKER: 0x08,
+	PREFERENCE: 0x80,
+};
 
 const ElectronicReader: React.FC<ElectronicReaderProps> = function (props) {
 	const { currentIndex, prefixCls = 'moonBase', className = '', style } = props;
@@ -54,27 +60,65 @@ const ElectronicReader: React.FC<ElectronicReaderProps> = function (props) {
 
 				const loadingTask = pdfJs.getDocument(e.target.result);
 				loadingTask.promise.then((pdfFile) => {
-					console.log(window.devicePixelRatio);
-					pdfFile.getPage(1).then((res) => {
-						var viewport = res.getViewport({
-							scale:
-								// window.devicePixelRatio && window.devicePixelRatio > 1
-								// 	? window.devicePixelRatio
-								// 	: 1,
-								2,
-							// dontFlip: 300,
-						});
-						const canvas = canvasRef.current;
-						const context = canvas.getContext('2d');
-						const newCanvas = context.canvas;
-						newCanvas.width = viewport.width;
-						newCanvas.height = viewport.height;
 
-						res.render({
-							canvasContext: context,
-							viewport,
+          console.log("getDocument", pdfFile)
+					console.log(window.devicePixelRatio);
+					pdfFile.getOutline().then((outline) => {
+						console.log('outline', outline);
+
+						const targetOutLine = outline[13];
+						pdfFile.getPageIndex(targetOutLine.dest[0]).then((pageNumber) => {
+							console.log('getDestination', pageNumber);
+							pdfFile.getPage(pageNumber).then((res) => {
+                res.getTextContent().then((res)=>{
+                  console.log(res)
+                })
+								var viewport = res.getViewport({
+									scale:
+										// window.devicePixelRatio && window.devicePixelRatio > 1
+										// 	? window.devicePixelRatio
+										// 	: 1,
+										2,
+									// dontFlip: 300,
+								});
+								const canvas = canvasRef.current;
+								const context = canvas.getContext('2d');
+								const newCanvas = context.canvas;
+								newCanvas.width = viewport.width;
+								newCanvas.height = viewport.height;
+								res.render({
+									canvasContext: context,
+									viewport,
+								});
+							});
+
+							// pdfViewer.scrollPageIntoView({
+							// 	pageNumber,
+							// 	destArray: targetOutLine.dest,
+							// 	ignoreDestinationZoom: false,
+							// });
 						});
+						// this.pdfDocument.getDestination(dest)
 					});
+					// pdfFile.getPage(1).then((res) => {
+					// 	var viewport = res.getViewport({
+					// 		scale:
+					// 			// window.devicePixelRatio && window.devicePixelRatio > 1
+					// 			// 	? window.devicePixelRatio
+					// 			// 	: 1,
+					// 			2,
+					// 		// dontFlip: 300,
+					// 	});
+					// 	const canvas = canvasRef.current;
+					// 	const context = canvas.getContext('2d');
+					// 	const newCanvas = context.canvas;
+					// 	newCanvas.width = viewport.width;
+					// 	newCanvas.height = viewport.height;
+					// 	res.render({
+					// 		canvasContext: context,
+					// 		viewport,
+					// 	});
+					// });
 				});
 			};
 		}

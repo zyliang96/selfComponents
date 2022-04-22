@@ -1,9 +1,10 @@
 import { ElectronicReader } from '@moon-base/element';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 export default (props) => {
 	const [imgList, setImgList] = useState([]);
+
 	return (
-		<div>
+		<div style={{ overflowY: 'auto' }}>
 			<ElectronicReader imgList={imgList} />
 		</div>
 	);
