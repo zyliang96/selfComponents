@@ -1,12 +1,34 @@
 .moonBase-electronic-reader {
-  width: 100%;
-  padding: 10px;
+	width: 100%;
+	padding: 10px;
 	&-canvas {
 		width: 800px;
 		height: 1000px;
-    canvas{
-      width: 100%;
-      height: 100%;
-    }
+		position: relative;
+		canvas {
+			width: 100%;
+			height: 100%;
+		}
+		.canvas-dom {
+			position: absolute;
+			text-align: initial;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			overflow: hidden;
+			opacity: 0.2;
+			line-height: 1;
+			text-size-adjust: none;
+			forced-color-adjust: none;
+
+			span {
+				color: transparent;
+				position: absolute;
+				white-space: pre;
+				cursor: text;
+				transform-origin: 0% 0%;
+			}
+		}
 	}
 }
