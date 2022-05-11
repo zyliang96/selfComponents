@@ -1,0 +1,15 @@
+.at-input-box {
+	.at-input-textarea {
+		width: 500px;
+		height: 70px;
+		overflow-y: auto;
+		border: 1px solid #cccccc;
+		padding: 5px;
+		font-size: 14px;
+	}
+	.at-input-list {
+		position: fixed;
+		border: 1px solid #000000;
+		border-radius: 5px;
+	}
+}

@@ -166,6 +166,40 @@ export function getRoutes() {
         "title": "新用户引导组件设计方案 - StudyLibrary"
       },
       {
+        "path": "/pcComponent/inputWithAt/input-with-at",
+        "component": require('D:/self/develop/selfComponents/packages/element/components/inputWithAt/index.md').default,
+        "exact": true,
+        "meta": {
+          "filePath": "packages/element/components/inputWithAt/index.md",
+          "updatedTime": 1652237164025,
+          "componentName": "inputWithAt",
+          "mobile": false,
+          "title": "input 的@ 功能",
+          "nav": {
+            "title": "pc组件",
+            "path": "/pcComponent"
+          },
+          "group": {
+            "title": "input 的@ 功能",
+            "path": "/pcComponent/inputWithAt"
+          },
+          "slugs": [
+            {
+              "depth": 3,
+              "value": "基础使用",
+              "heading": "基础使用"
+            },
+            {
+              "depth": 2,
+              "value": "API",
+              "heading": "api"
+            }
+          ],
+          "hasPreviewer": true
+        },
+        "title": "input 的@ 功能 - StudyLibrary"
+      },
+      {
         "path": "/pcComponent/lego-table/lego-table",
         "component": require('D:/self/develop/selfComponents/packages/element/components/lego-table/index.md').default,
         "exact": true,
@@ -209,7 +243,13 @@ export function getRoutes() {
         "path": "/pcComponent",
         "meta": {},
         "exact": true,
-        "redirect": "/pcComponent/lego-table"
+        "redirect": "/pcComponent/inputWithAt"
+      },
+      {
+        "path": "/pcComponent/inputWithAt",
+        "meta": {},
+        "exact": true,
+        "redirect": "/pcComponent/inputWithAt/input-with-at"
       },
       {
         "path": "/pcComponent/lego-table",

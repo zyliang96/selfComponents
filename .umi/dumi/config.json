@@ -17,6 +17,12 @@
       ],
       "/pcComponent": [
         {
+          "title": "input 的@ 功能",
+          "path": "/pcComponent/inputWithAt",
+          "meta": {},
+          "children": []
+        },
+        {
           "title": "可搭建表格",
           "path": "/pcComponent/lego-table",
           "meta": {},

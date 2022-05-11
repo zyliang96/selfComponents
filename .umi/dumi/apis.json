@@ -8,10 +8,17 @@
         "required": true
       },
       {
-        "identifier": "currentIndex",
+        "identifier": "pageIndex",
         "description": "当前页码",
         "type": "number",
         "default": "1"
+      },
+      {
+        "identifier": "fileInfo",
+        "description": "文件链接",
+        "type": "FileInfo",
+        "default": "undefined",
+        "required": true
       },
       {
         "identifier": "onPageChange",
@@ -33,6 +40,9 @@
         "type": "String"
       }
     ]
+  },
+  "inputWithAt": {
+    "default": []
   },
   "lego-table": {
     "default": []
