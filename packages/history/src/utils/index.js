@@ -11,7 +11,6 @@ export function createEventList(options = {}) {
       return list.length;
     },
     push(fn) {
-      list.push(fn);
       return () => {
         list = list.filter((item) => item !== fn);
         if (!list.length) {

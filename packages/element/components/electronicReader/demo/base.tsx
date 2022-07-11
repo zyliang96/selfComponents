@@ -6,7 +6,7 @@ export default (props) => {
 	const [imgList, setImgList] = useState([]);
 	const [fileInfo, setFileInfo] = useState(null);
 	const onFileChange = (e) => {
-    const files = e.target.files
+		const files = e.target.files;
 		const file = e.target.files[0];
 
 		let fileUrl = URL.createObjectURL(file);
@@ -33,67 +33,67 @@ export default (props) => {
 					pdfFile.getOutline().then((outline) => {
 						console.log('outline', outline);
 
-						// const targetOutLine = outline[13];
-						// pdfFile.getPageIndex(targetOutLine.dest[0]).then((pageNumber) => {
-						// 	console.log('getDestination', pageNumber);
-						// 	pdfFile.getPage(9).then((pdfPage) => {
-						// 		var viewport = pdfPage.getViewport({
-						// 			scale:
-						// 				// window.devicePixelRatio && window.devicePixelRatio > 1
-						// 				// 	? window.devicePixelRatio
-						// 				// 	: 1,
-						// 				1.5 * pdfJs.PixelsPerInch.PDF_TO_CSS_UNITS,
-						// 			// dontFlip: 300,
-						// 		});
-						// 		// canvasBodyRef.current.style.width = viewport.width + 'px';
-						// 		// canvasBodyRef.current.style.height = viewport.height + 'px';
-						// 		pdfPage.getTextContent().then((textContent) => {
-						// 			const readableStream = pdfPage.streamTextContent({
-						// 				disableCombineTextItems: false,
-						// 				includeMarkedContent: true,
-						// 			});
-						// 			const div = document.createElement('span');
-						// 			div.style.width = viewport.width + 'px';
-						// 			div.style.height = viewport.height + 'px';
-						// 			// div.style.width = 800 + 'px';
-						// 			// div.style.height = 900 + 'px';
+						const targetOutLine = outline[13];
+						pdfFile.getPageIndex(targetOutLine.dest[0]).then((pageNumber) => {
+							console.log('getDestination', pageNumber);
+							pdfFile.getPage(9).then((pdfPage) => {
+								var viewport = pdfPage.getViewport({
+									scale:
+										// window.devicePixelRatio && window.devicePixelRatio > 1
+										// 	? window.devicePixelRatio
+										// 	: 1,
+										1.5 * pdfJs.PixelsPerInch.PDF_TO_CSS_UNITS,
+									// dontFlip: 300,
+								});
+								// canvasBodyRef.current.style.width = viewport.width + 'px';
+								// canvasBodyRef.current.style.height = viewport.height + 'px';
+								pdfPage.getTextContent().then((textContent) => {
+									const readableStream = pdfPage.streamTextContent({
+										disableCombineTextItems: false,
+										includeMarkedContent: true,
+									});
+									const div = document.createElement('span');
+									div.style.width = viewport.width + 'px';
+									div.style.height = viewport.height + 'px';
+									// div.style.width = 800 + 'px';
+									// div.style.height = 900 + 'px';
 
-						// 			// viewport.width = 800;
-						// 			// viewport.height = 900;
-						// 			const renderTask = pdfJs.renderTextLayer({
-						// 				textContent,
-						// 				textContentStream: readableStream,
-						// 				container: div,
-						// 				viewport,
-						// 				enhanceTextSelection: false,
-						// 			});
-						// 			console.log('renderTask._textDivs', renderTask._textDivs);
-						// 			console.log('renderTask._textDivs:div', div);
-						// 			renderTask.promise.then(() => {
-						// 				// console.log(domRef.current);
-						// 				domRef.current.style.width = viewport.width + 'px';
-						// 				domRef.current.style.height = viewport.height + 'px';
-						// 				domRef.current.appendChild(div);
-						// 			});
-						// 			console.log(textContent);
-						// 		});
+									// viewport.width = 800;
+									// viewport.height = 900;
+									const renderTask = pdfJs.renderTextLayer({
+										textContent,
+										textContentStream: readableStream,
+										container: div,
+										viewport,
+										enhanceTextSelection: false,
+									});
+									console.log('renderTask._textDivs', renderTask._textDivs);
+									console.log('renderTask._textDivs:div', div);
+									renderTask.promise.then(() => {
+										// console.log(domRef.current);
+										domRef.current.style.width = viewport.width + 'px';
+										domRef.current.style.height = viewport.height + 'px';
+										domRef.current.appendChild(div);
+									});
+									console.log(textContent);
+								});
 
-						// 		const canvas = canvasRef.current;
-						// 		const context = canvas.getContext('2d');
-						// 		const newCanvas = context.canvas;
-						// 		newCanvas.width = viewport.width;
-						// 		newCanvas.height = viewport.height;
-						// 		pdfPage.render({
-						// 			canvasContext: context,
-						// 			viewport,
-						// 		});
-						// 	});
+								const canvas = canvasRef.current;
+								const context = canvas.getContext('2d');
+								const newCanvas = context.canvas;
+								newCanvas.width = viewport.width;
+								newCanvas.height = viewport.height;
+								pdfPage.render({
+									canvasContext: context,
+									viewport,
+								});
+							});
 
-							// pdfViewer.scrollPageIntoView({
-							// 	pageNumber,
-							// 	destArray: targetOutLine.dest,
-							// 	ignoreDestinationZoom: false,
-							// });
+						// pdfViewer.scrollPageIntoView({
+						// 	pageNumber,
+						// 	destArray: targetOutLine.dest,
+						// 	ignoreDestinationZoom: false,
+						// });
 						// });
 						// this.pdfDocument.getDestination(dest)
 					});
