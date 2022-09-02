@@ -1,9 +1,15 @@
 {
     "[markdown]": {
         "editor.quickSuggestions": {
+<<<<<<< Updated upstream
           "comments": "on",
           "strings": "on",
           "other": "on"
+=======
+            "comments": "on",
+            "strings": "on",
+            "other": "on"
+>>>>>>> Stashed changes
         }
     }
 }
